@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TestRail Studio Pro - Enterprise Test Case Formatter & Sync Platform</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="app-body">
+    <!-- Top Web Application Header Navigation -->
+    <header class="app-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">TestRail Studio <span class="brand-tag">PRO</span></span>
+                    <span class="brand-sub">Enterprise QA Format &amp; API Sync Platform</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="tab-formatter">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>Formatter Studio</span>
+                </button>
+                <button class="nav-item" data-tab="tab-testrail">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                        <line x1="16" y1="5" x2="22" y2="5"></line>
+                        <line x1="19" y1="2" x2="19" y2="8"></line>
+                    </svg>
+                    <span>Direct TestRail Sync</span>
+                </button>
+                <button class="nav-item" data-tab="tab-guide">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Formatting Guide</span>
+                </button>
+            </nav>
+
+            <div class="nav-status">
+                <span class="status-indicator online"></span>
+                <span class="status-text">TestRail API Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Container -->
+    <div class="app-wrapper">
+        <!-- Live Analytics Dashboard Stats Banner -->
+        <section class="dashboard-banner">
+            <div class="banner-stat-card">
+                <div class="stat-icon-wrapper purple">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="stat-title">Formatter Engine</span>
+                    <span class="stat-number">HTML &amp; Markdown</span>
+                </div>
+            </div>
+
+            <div class="banner-stat-card">
+                <div class="stat-icon-wrapper green">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="stat-title">Tag Auto-Escaping</span>
+                    <span class="stat-number"><code>&lt;roomName&gt;</code> Protected</span>
+                </div>
+            </div>
+
+            <div class="banner-stat-card">
+                <div class="stat-icon-wrapper blue">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="stat-title">Section Tree Builder</span>
+                    <span class="stat-number">Auto Hierarchy</span>
+                </div>
+            </div>
+
+            <div class="banner-stat-card">
+                <div class="stat-icon-wrapper orange">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="stat-title">Field Mapping</span>
+                    <span class="stat-number">Dynamic Schema</span>
+                </div>
+            </div>
+        </section>
+
+        <main class="main-content">
+            <!-- TAB 1: FORMATTER STUDIO WORKBENCH -->
+            <div id="tab-formatter" class="tab-page active">
+                <section class="card upload-card">
+                    <div class="card-header">
+                        <div>
+                            <h2>CSV Test Case Formatter Studio</h2>
+                            <p class="subtitle">Upload CSV test suites to clean bullet indentations, normalize line
+                                breaks &amp; auto-escape custom placeholder tags.</p>
+                        </div>
+                        <span class="badge">CSV UTF-8 Enabled</span>
+                    </div>
+
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="dropzone" id="dropzone">
+                            <input type="file" id="fileInput" name="file" accept=".csv" class="file-input">
+                            <div class="dropzone-content">
+                                <div class="upload-icon">
+                                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.5">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <polyline points="17 8 12 3 7 8" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <line x1="12" y1="3" x2="12" y2="15" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                <p class="dropzone-text"><span class="highlight">Click to upload CSV file</span> or drag
+                                    &amp; drop file here</p>
+                                <p class="file-hint">Supports multiline cells, quoted strings, TestRail CSV exports
+                                    &amp; special characters</p>
+                                <div id="fileInfo" class="file-info hidden">
+                                    <span id="fileName" class="file-name"></span>
+                                    <button type="button" id="removeFileBtn" class="btn-icon">&times;</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="options-container">
+                            <div class="format-options-bar">
+                                <div class="option-item">
+                                    <label for="bulletFormatSelect" class="option-label">Bullet Formatting Mode:</label>
+                                    <select id="bulletFormatSelect" name="bullet_format"
+                                        class="form-control select-modern">
+                                        <option value="markdown" selected>Markdown (- item) (Recommended for Manual CSV
+                                            Import)</option>
+                                        <option value="html">HTML &lt;ul&gt;&lt;li&gt; (Recommended for Direct API Push)
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="tag-protection-info">
+                                    <span class="info-badge">🛡️ Tag Protection Active</span>
+                                    <span class="info-text">Placeholder tags like <code>&lt;roomName&gt;</code>,
+                                        <code>&lt;HT Primary&gt;</code> are auto-escaped to prevent TestRail from
+                                        stripping them.</span>
+                                </div>
+                                <div class="sanitization-toggles-grid"
+                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-top: 0.875rem; margin-bottom: 0.875rem; background: rgba(0, 0, 0, 0.2); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                    <label class="checkbox-label"
+                                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
+                                        <input type="checkbox" id="decodeHtmlEntitiesCheck" checked
+                                            style="accent-color: var(--primary);">
+                                        <span>Decode HTML Entities (<code>&amp;lt;</code> ➔ <code>&lt;</code>,
+                                            <code>&amp;gt;</code> ➔ <code>&gt;</code>)</span>
+                                    </label>
+                                    <label class="checkbox-label"
+                                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
+                                        <input type="checkbox" id="normQuotesCheck" checked
+                                            style="accent-color: var(--primary);">
+                                        <span>Smart Quotes Normalization (<code>“ ”</code> ➔ <code>" "</code>)</span>
+                                    </label>
+                                    <label class="checkbox-label"
+                                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
+                                        <input type="checkbox" id="escapePipesCheck" checked
+                                            style="accent-color: var(--primary);">
+                                        <span>Escape Pipe Symbols (<code>|</code> ➔ <code>\|</code>)</span>
+                                    </label>
+                                    <label class="checkbox-label"
+                                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
+                                        <input type="checkbox" id="stripInvisibleCheck" checked
+                                            style="accent-color: var(--primary);">
+                                        <span>Strip Zero-Width &amp; Invisible Unicode</span>
+                                    </label>
+                                </div>
+
+                                <div class="import-method-note"
+                                    style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm); font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <div
+                                        style="font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 0.4rem;">
+                                        💡 <span>Import Method Guidelines:</span>
+                                    </div>
+                                    <div style="color: var(--text-secondary); line-height: 1.5;">
+                                        • <strong>Direct API Push:</strong> Select
+                                        <code>HTML &lt;ul&gt;&lt;li&gt;</code> mode and use
+                                        <code>Push to TestRail API</code>.<br>
+                                        • <strong>Manual CSV Import (Giữ Nguyên Dạng Chữ
+                                            <code>&lt;roomName&gt;</code>):</strong> Select
+                                        <code>Markdown (- item)</code> mode. Khi import file CSV trên giao diện TestRail
+                                        Web UI (Bước 2 Options)
+                                    </div>
+                                </div>
+
+                                <button type="submit" id="cleanBtn" class="btn btn-primary btn-hero" disabled>
+                                    <span class="btn-text">Format &amp; Clean CSV</span>
+                                    <span class="spinner hidden"></span>
+                                </button>
+                            </div>
+                    </form>
+
+                    <div id="alertBox" class="alert hidden"></div>
+                </section>
+
+                <!-- Results & Preview Section -->
+                <section id="resultsSection" class="card results-card hidden">
+                    <div class="card-header">
+                        <div>
+                            <h2>Formatted Results &amp; Live Grid Workbench</h2>
+                            <p class="subtitle">Review cleaned formatting before downloading clean CSV or syncing
+                                directly to TestRail.</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="openTestRailModalBtn" class="btn btn-primary btn-glow">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                                    <line x1="16" y1="5" x2="22" y2="5"></line>
+                                    <line x1="19" y1="2" x2="19" y2="8"></line>
+                                </svg>
+                                <span>Push to TestRail API</span>
+                            </button>
+                            <button id="downloadBtn" class="btn btn-success">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Download Clean CSV</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Statistics -->
+                    <div class="stats-grid">
+                        <div class="stat-card highlight-purple"
+                            style="border-color: rgba(99, 102, 241, 0.5); background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent);">
+                            <span class="stat-label" style="color: #a5b4fc;">Detected Test Cases</span>
+                            <span id="statTestCases" class="stat-value" style="color: #818cf8;">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Total CSV Rows</span>
+                            <span id="statRows" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Cells Inspected</span>
+                            <span id="statChecked" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-card highlight">
+                            <span class="stat-label">Cells Formatted</span>
+                            <span id="statChanged" class="stat-value">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Preview Controls Toolbar -->
+                    <div class="preview-toolbar">
+                        <div class="tab-group">
+                            <button type="button" class="tab-btn active" data-view="grid">📊 Excel Full Grid
+                                View</button>
+                            <button type="button" class="tab-btn" data-view="changes">Edited / Changed Cells (<span
+                                    id="changesCountBadge">0</span>)</button>
+                            <button type="button" class="tab-btn" data-view="unchanged">Unedited Cells (<span
+                                    id="unchangedCountBadge">0</span>)</button>
+                        </div>
+                        <div class="toolbar-actions">
+                            <div class="drag-hint">
+                                🖐️ <strong>Excel Grid Workbench:</strong> Click &amp; drag to scroll &bull; Click any
+                                row/cell to inspect
+                            </div>
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Search in Excel grid..."
+                                    class="input-search">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full Grid View (Excel Spreadsheet UI) -->
+                    <div id="gridView" class="table-container excel-grid-container">
+                        <table class="preview-table excel-table">
+                            <thead id="gridTableHeader">
+                                <!-- Populated dynamically -->
+                            </thead>
+                            <tbody id="gridTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Diff Table View (Edited Cells) -->
+                    <div id="changesView" class="table-container hidden">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 90px;">Row #</th>
+                                    <th style="width: 170px;">Column</th>
+                                    <th>Original Text</th>
+                                    <th>Formatted Clean Text</th>
+                                </tr>
+                            </thead>
+                            <tbody id="changesTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Unchanged Cells View (Unedited Cells) -->
+                    <div id="unchangedView" class="table-container hidden">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 90px;">Row #</th>
+                                    <th style="width: 170px;">Column</th>
+                                    <th>Clean Text (Unchanged)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unchangedTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB 2: DIRECT TESTRAIL SYNC PLATFORM -->
+            <div id="tab-testrail" class="tab-page hidden">
+                <section class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2>🚀 Direct TestRail Sync Manager</h2>
+                            <p class="subtitle">Connect directly to TestRail REST API v2 to automatically push test
+                                cases into your designated Section &amp; Sub-Section hierarchy.</p>
+                        </div>
+                        <span class="badge online">REST API v2 Ready</span>
+                    </div>
+
+                    <!-- Quick Tutorial Steps for Direct Sync -->
+                    <div class="guide-card"
+                        style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.25);">
+                        <div class="guide-header">
+                            <span class="guide-icon">💡</span>
+                            <h3 style="color: #a5b4fc;">4-Step Direct TestRail Synchronization Workflow:</h3>
+                        </div>
+                        <ol class="guide-list" style="margin-left: 1.5rem; gap: 0.5rem;">
+                            <li><strong>Step 1:</strong> Upload your CSV file in the <strong>Formatter Studio</strong>
+                                tab to clean formatting and scan detected columns.</li>
+                            <li><strong>Step 2:</strong> Enter your TestRail credentials: <code>Instance URL</code>,
+                                <code>Email</code>, <code>API Key</code>, and <code>Project ID</code> below.
+                            </li>
+                            <li><strong>Step 3:</strong> Click <code style="color:#a7f3d0;">🔄 Fetch Section Tree</code>
+                                to load all existing destination sections from TestRail.</li>
+                            <li><strong>Step 4:</strong> Verify/customize field mapping for CSV columns (Title,
+                                Preconditions, Steps, Type, Priority...) and click <code
+                                    style="color:#818cf8;">🚀 Execute Push to TestRail API</code>.</li>
+                        </ol>
+                    </div>
+
+                    <form id="testRailTabForm">
+                        <div class="form-grid-layout" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label for="tabTrUrl">TestRail Instance URL *</label>
+                                <input type="url" id="tabTrUrl" required placeholder="https://yourcompany.testrail.io"
+                                    class="form-control">
+                            </div>
+
+                            <div class="form-row-2col">
+                                <div class="form-group">
+                                    <label for="tabTrEmail">Email Address *</label>
+                                    <input type="email" id="tabTrEmail" required placeholder="qa@company.com"
+                                        class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tabTrApiKey">API Key / Password *</label>
+                                    <input type="password" id="tabTrApiKey" required placeholder="••••••••••••••••"
+                                        class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                                <div class="form-group">
+                                    <label for="tabTrProjectId">Project ID *</label>
+                                    <input type="number" id="tabTrProjectId" required placeholder="1"
+                                        class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tabTrSuiteId">Suite ID (Optional - Leave empty for Single Suite)</label>
+                                    <input type="number" id="tabTrSuiteId" placeholder="e.g. 12" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="flex-between">
+                                    <label for="tabTrSectionSelect">Target Section (Destination Folder on TestRail)
+                                        *</label>
+                                    <button type="button" id="tabFetchSectionsBtn" class="btn-text-link"
+                                        style="font-weight: 700;">
+                                        🔄 Fetch Section Tree from TestRail
+                                    </button>
+                                </div>
+                                <select id="tabTrSectionSelect" class="form-control select-modern">
+                                    <option value="">-- Root Level (Auto-create Sections from CSV) --</option>
+                                </select>
+                            </div>
+
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="tabRememberCreds" checked>
+                                <span>Remember TestRail credentials locally in browser storage</span>
+                            </label>
+
+                            <details open class="mapping-details-card">
+                                <summary class="mapping-summary">📋 Dynamic CSV Column to TestRail Field Mapper
+                                </summary>
+                                <p class="subtitle" style="font-size: 0.8125rem; margin: 0.5rem 0 1rem;">Detected CSV
+                                    columns are automatically mapped to corresponding TestRail fields:</p>
+                                <div id="tabColumnMappingContainer" class="mapping-container">
+                                    <p class="subtitle" style="font-size: 0.8125rem;">Please upload a CSV file in
+                                        Formatter Studio tab first to detect column schemas.</p>
+                                </div>
+                            </details>
+
+                            <div id="tabTrLogConsole" class="log-console hidden"></div>
+                            <div id="tabTrAlertBox" class="alert hidden"></div>
+
+                            <div class="flex-end" style="margin-top: 1rem;">
+                                <button type="submit" id="tabSubmitPushBtn" class="btn btn-primary btn-hero btn-glow">
+                                    <span class="btn-text">🚀 Execute Push to TestRail API</span>
+                                    <span class="spinner hidden"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <!-- TAB 3: FORMATTING & ESCAPING GUIDE -->
+            <div id="tab-guide" class="tab-page hidden">
+                <section class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2>📘 Hướng Dẫn Viết Formatting Standard Cho TestRail</h2>
+                            <p class="subtitle">Bảng quy chuẩn định dạng giúp test case hiển thị chuẩn xác 100% khi đẩy
+                                lên TestRail.</p>
+                        </div>
+                        <span class="badge">Quy Chuẩn Định Dạng</span>
+                    </div>
+
+                    <div class="guide-grid">
+                        <!-- VISUAL CHEAT SHEET: WRITING GUIDE & OUTPUT COMPARISON -->
+                        <div class="guide-card"
+                            style="grid-column: 1 / -1; border-left: 4px solid #8b5cf6; background: rgba(139, 92, 246, 0.05);">
+                            <div class="guide-header" style="margin-bottom: 1rem;">
+                                <span class="guide-icon">💡</span>
+                                <div>
+                                    <h3 style="font-size: 1.15rem; color: #c4b5fd;">Bảng Hướng Dẫn Chi Tiết: Bạn Viết
+                                        Thế Nào ➔ Kết Quả Trên TestRail Như Thế Đó</h3>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">So
+                                        sánh trực quan giữa dữ liệu thô (dễ bị vỡ format) và kết quả hiển thị trên
+                                        TestRail sau khi qua tool.</p>
+                                </div>
+                            </div>
+
+                            <div style="overflow-x: auto; margin-top: 1rem;">
+                                <table
+                                    style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; text-align: left;">
+                                    <thead>
+                                        <tr
+                                            style="background: rgba(255,255,255,0.06); border-bottom: 2px solid var(--border-color);">
+                                            <th style="padding: 0.75rem 1rem; color: var(--text-primary); width: 28%;">
+                                                Trường Hợp &amp; Input Bạn Nhập Trong CSV</th>
+                                            <th style="padding: 0.75rem 1rem; color: #f87171; width: 34%;">❌ Nếu Không
+                                                Dùng Tool (Bị Bể Format)</th>
+                                            <th style="padding: 0.75rem 1rem; color: #34d399; width: 38%;">✅ Qua Tool Xử
+                                                Lý ➔ TestRail Hiển Thị Nét Căng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="divide-y: 1px solid var(--border-color);">
+                                        <!-- CASE 1 -->
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">1.
+                                                    Tag Biến / Placeholder</strong>
+                                                <code>Select stereo pair to add &lt;roomName&gt;</code>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                TestRail xem <code>&lt;roomName&gt;</code> là thẻ HTML hoặc mã hóa thành
+                                                lỗi
+                                                <code>&amp;lt;roomName&amp;gt;</code> hoặc chèn dấu <code>\</code> xấu.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Tool tự động chuyển thành tag Unicode chuẩn:
+                                                <code>Select stereo pair to add ＜roomName＞</code>.<br>
+                                                TestRail hiển thị nguyên văn <strong>Select stereo pair to add
+                                                    ＜roomName＞</strong> sạch sẽ 100%, không bị dính
+                                                <code>&amp;lt;</code> hay <code>\</code>!
+                                            </td>
+                                        </tr>
+
+                                        <!-- CASE 2 -->
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">2.
+                                                    Dấu Pipe | trong Text</strong>
+                                                <code>Verify Option A | Option B</code>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                Trình đọc Markdown TestRail hiểu ký tự <code>|</code> là cột bảng ➔
+                                                <strong>Rách/vỡ cấu trúc Markdown Table</strong> trên UI TestRail.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Tool tự động đổi <code>|</code> ➔ <code>\|</code>.<br>
+                                                TestRail hiển thị nguyên vẹn câu văn <strong>Verify Option A | Option
+                                                    B</strong> mà không làm gãy bảng Markdown.
+                                            </td>
+                                        </tr>
+
+                                        <!-- CASE 3 -->
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">3.
+                                                    Smart Quotes (Word/Figma)</strong>
+                                                <code>Select “Continue” or ‘Cancel’</code>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                Ngoặc cong `“ ”` gây lỗi mã hóa CSV/JSON API hoặc bị hiển thị thành ký
+                                                tự lạ <code>â€œContinueâ€</code>.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Tool tự động chuyển Smart Quotes về dạng ngoặc đơn/kép tiêu chuẩn
+                                                ASCII:<br>
+                                                <strong>Select "Continue" or 'Cancel'</strong>.
+                                            </td>
+                                        </tr>
+
+                                        <!-- CASE 4 -->
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">4.
+                                                    Bullet List &amp; Thụt Lề</strong>
+                                                <pre
+                                                    style="background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">Expected:
+  - Line 1
+   - Line 2</pre>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                Thụt lề tab/khoảng trắng không đều làm các dấu gạch đầu dòng dính chụm
+                                                lại thành 1 dòng hoặc bị biến thành Code block xám xịt.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Chuyển đổi hoàn hảo sang danh sách HTML
+                                                <code>&lt;ul&gt;&lt;li&gt;</code> hoặc Markdown chuẩn:<br>
+                                                • Line 1<br>
+                                                • Line 2 (các dòng thụt lề đều đặn, phân khoảng rõ ràng).
+                                            </td>
+                                        </tr>
+
+                                        <!-- CASE 5 -->
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">5.
+                                                    Ký tự ẩn &amp; Tiếng Việt</strong>
+                                                <code>Kiểm tra&#x200B; giao&#x00A0;diện</code>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                Zero-Width Space (`\u200b`), BOM (`\ufeff`) làm rách khoảng trắng, chữ
+                                                tiếng Việt bị lỗi ô vuông hoặc dấu hỏi `?`.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Gọt sạch 100% ký tự Unicode ẩn, mã hóa UTF-8 sạch sẽ giúp Tiếng Việt
+                                                hiển thị mượt mà trên TestRail.
+                                            </td>
+                                        </tr>
+
+                                        <!-- CASE 6 -->
+                                        <tr>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">6.
+                                                    Code Block / JSON Payload</strong>
+                                                <pre
+                                                    style="background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">{"status": "ok", "code": 200}</pre>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                Dòng JSON nhiều xuống dòng bị phân mảnh khi import CSV thô làm vỡ dòng
+                                                trong ô TestRail.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Giữ nguyên vẹn toàn bộ ngắt dòng nội dung ô, hiển thị thành khối
+                                                Markdown Code sắc nét trên TestRail UI.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- EXCEL KEYBOARD SHORTCUT & BULLET LEVEL GUIDE -->
+                        <div class="guide-card"
+                            style="grid-column: 1 / -1; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); margin-top: 1rem;">
+                            <div class="guide-header" style="margin-bottom: 0.875rem;">
+                                <span class="guide-icon">⌨️</span>
+                                <div>
+                                    <h3 style="font-size: 1.1rem; color: #a7f3d0;">Hướng Dẫn Thao Tác Phím Nhập Dữ Liệu
+                                        Trong Excel (Cấp Cha vs Cấp Con)</h3>
+                                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                                        Quy tắc phân biệt giữa Bullet chính (ngang hàng) và Bullet con (thụt lề 1 nấc)
+                                        khi nhập ô trong Excel.</p>
+                                </div>
+                            </div>
+
+                            <div
+                                style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem; line-height: 1.6; color: var(--text-primary);">
+                                <div
+                                    style="background: rgba(0,0,0,0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                    <strong
+                                        style="color: #6ee7b7; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">🎹
+                                        Chi tiết thao tác phím khi nhập trong 1 ô Excel:</strong>
+                                    <ul
+                                        style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                                        <li>• <strong>Dòng 1 (Mục chính):</strong> Gõ <code>- Mục chính 1</code> ➔ Nhấn
+                                            <kbd
+                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
+                                                + Enter</kbd> để xuống dòng trong ô.
+                                        </li>
+                                        <li>• <strong>Dòng 2 (Mục con):</strong> Nhấn <strong>dấu cách (Spacebar) 2
+                                                lần</strong> ➔ Gõ <code>- Mục con 1.1</code> ➔ Nhấn <kbd
+                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
+                                                + Enter</kbd> xuống dòng.</li>
+                                        <li>• <strong>Dòng 3 (Mục con):</strong> Nhấn <strong>dấu cách (Spacebar) 2
+                                                lần</strong> ➔ Gõ <code>- Mục con 1.2</code> ➔ Nhấn <kbd
+                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
+                                                + Enter</kbd> xuống dòng.</li>
+                                        <li>• <strong>Dòng 4 (Mục chính):</strong> Gõ <code>- Mục chính 2</code> (không
+                                            cách ở đầu).</li>
+                                    </ul>
+                                </div>
+
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;">
+                                    <div
+                                        style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #6366f1;">
+                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Quy
+                                            Tắc Cốt Lõi:</strong>
+                                        <div style="color: var(--text-secondary);">
+                                            • <strong>Cấp cha (Mục chính):</strong> Không cách ở đầu
+                                            (<code>- Item</code>).<br>
+                                            • <strong>Cấp con (Thụt lề):</strong> Thêm 2 khoảng trắng trước dấu gạch đầu
+                                            dòng (<code>&nbsp;&nbsp;- Sub-item</code>).
+                                        </div>
+                                    </div>
+                                    <div
+                                        style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #38bdf8;">
+                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️ Kết
+                                            Quả Hiển Thị Trên TestRail:</strong>
+                                        <div style="font-family: monospace; color: #e2e8f0; font-size: 0.8rem;">
+                                            • Mục chính 1<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;• Mục con 1.1<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;• Mục con 1.2<br>
+                                            • Mục chính 2
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>TestRail Studio PRO &bull; Enterprise Test Case Engineering &amp; Sync Platform</p>
+        </footer>
+    </div>
+
+    <!-- TestRail API Push Modal (Quick Trigger from Formatter Studio) -->
+    <div id="testRailModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Push Test Cases to TestRail API</h3>
+                <button type="button" id="closeModalBtn" class="btn-icon">&times;</button>
+            </div>
+            <form id="testRailForm">
+                <div class="modal-body">
+                    <p class="subtitle" style="margin-bottom: 1rem;">Auto-creates <strong>Section</strong> &amp;
+                        <strong>Sub-Section</strong> tree nodes from CSV and pushes test cases via TestRail API.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="trUrl">TestRail Instance URL *</label>
+                        <input type="url" id="trUrl" required placeholder="https://yourcompany.testrail.io"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="trEmail">Email *</label>
+                            <input type="email" id="trEmail" required placeholder="qa@company.com" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="trApiKey">API Key / Password *</label>
+                            <input type="password" id="trApiKey" required placeholder="••••••••••••••••"
+                                class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="trProjectId">Project ID *</label>
+                            <input type="number" id="trProjectId" required placeholder="1" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="trSuiteId">Suite ID (Optional)</label>
+                            <input type="number" id="trSuiteId" placeholder="Leave empty for single-suite"
+                                class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                            <label for="trSectionSelect">Target Section *</label>
+                            <button type="button" id="fetchSectionsBtn" class="btn-text-link"
+                                style="font-size: 0.8125rem; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600;">
+                                🔄 Load Sections from TestRail
+                            </button>
+                        </div>
+                        <select id="trSectionSelect" class="form-control" style="cursor: pointer;">
+                            <option value="">-- Root Level (Auto-create Sections from CSV) --</option>
+                        </select>
+                    </div>
+
+                    <label class="checkbox-label"
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-secondary); cursor: pointer;">
+                        <input type="checkbox" id="rememberCreds" checked style="accent-color: var(--primary);">
+                        <span>Remember credentials locally in browser</span>
+                    </label>
+
+                    <details id="trMappingDetails" open
+                        style="margin-top: 0.5rem; background: rgba(255,255,255,0.03); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                        <summary
+                            style="cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--primary); outline: none;">
+                            📋 CSV Column &amp; TestRail Field Mapping</summary>
+                        <p class="subtitle" style="font-size: 0.75rem; margin-top: 0.25rem; margin-bottom: 0.75rem;">
+                            Detected CSV columns automatically mapped to TestRail fields:</p>
+                        <div id="trColumnMappingContainer"
+                            style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto; padding-right: 0.25rem;">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </details>
+
+                    <div id="trLogConsole" class="log-console hidden"></div>
+                    <div id="trAlertBox" class="alert hidden"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelModalBtn" class="btn"
+                        style="background: rgba(255,255,255,0.05); color: var(--text-secondary);">Cancel</button>
+                    <button type="submit" id="submitPushBtn" class="btn btn-primary">
+                        <span class="btn-text">Confirm &amp; Push Test Cases</span>
+                        <span class="spinner hidden"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Row Detail Inspector Modal -->
+    <div id="rowDetailModal" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 850px; width: 90vw;">
+            <div class="modal-header">
+                <h3 id="rowDetailModalTitle">🔍 Row Detail Inspector</h3>
+                <button type="button" id="closeRowModalBtn" class="btn-icon">&times;</button>
+            </div>
+            <div class="modal-body" id="rowDetailModalBody" style="max-height: 75vh; gap: 1rem;">
+                <!-- Populated dynamically by app.js -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="closeRowModalFooterBtn" class="btn btn-primary">Close Inspector</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

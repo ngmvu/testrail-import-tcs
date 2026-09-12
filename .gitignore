@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+.env
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Application directories
+uploads/*
+outputs/*
+!uploads/.gitkeep
+!outputs/.gitkeep
+scratch/
+*.csv
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

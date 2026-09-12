@@ -1,0 +1,363 @@
+import csv
+import io
+import re
+from typing import Dict, List, Tuple, Any, Optional
+
+NON_HTML_TAG_REGEX = re.compile(r'<(?!/?(?:ul|li|b|i|p|br|code|a|span|div|strong|em)\b)([^>]+)>', re.IGNORECASE)
+BULLET_REGEX = re.compile(r'^\s*([-*•])\s*(.*)$')
+
+def escape_non_html_tags(text: str) -> str:
+    """
+    Converts custom placeholder tags like <roomName>, <model>, <portableName> to Unicode angle brackets ＜roomName＞
+    so TestRail renders them as clean literal text without HTML entity encoding (&lt;) or backslash escaping (\).
+    Preserves valid HTML formatting tags like <ul>, <li>, <br>, <b>, <i>, <p>.
+    """
+    if not text:
+        return ""
+    return NON_HTML_TAG_REGEX.sub(r'＜\1＞', text)
+
+def clean_test_case_text(
+    text: Optional[str],
+    decode_html_entities: bool = True,
+    bullet_format: str = "markdown",  # "markdown", "html", "unicode_dot"
+    normalize_smart_quotes: bool = True,
+    escape_pipes: bool = True,
+    strip_invisible_chars: bool = True
+) -> str:
+    if text is None:
+        return ""
+    if not isinstance(text, str):
+        text = str(text)
+    
+    if not text.strip():
+        return ""
+
+    # Step 1: Strip any leftover HTML formatting tags (span, code, font, div, p, br)
+    text = re.sub(r'</?(?:span|code|font|div|p|br)\b[^>]*>', '', text, flags=re.IGNORECASE)
+
+    if strip_invisible_chars:
+        # Strip zero-width space \u200b, zero-width no-break space \ufeff, soft hyphen \u00ad
+        text = re.sub(r'[\u200b\ufeff\u00ad]', '', text)
+        # Convert non-breaking space \u00a0 to standard space
+        text = text.replace('\u00a0', ' ')
+
+    if normalize_smart_quotes:
+        text = text.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
+
+    if escape_pipes:
+        # Escape pipe symbol '|' to '\|' unless already escaped
+        text = re.sub(r'(?<!\\)\|', r'\|', text)
+
+    if decode_html_entities:
+        # Fully decode single/double-encoded HTML entities like &amp;lt; or &lt; to raw < > " &
+        import html
+        for _ in range(3):
+            unescaped = html.unescape(text)
+            if unescaped == text:
+                break
+            text = unescaped
+
+    # Convert custom non-HTML placeholder tags like <model>, <portableName>, <roomName> to Unicode angle brackets ＜tag＞
+    # so TestRail renders them literally as ＜model＞ and ＜portableName＞ without &lt; or \ escaping
+    text = NON_HTML_TAG_REGEX.sub(r'＜\1＞', text)
+
+    # Split into individual lines (handles both \r\n and \n)
+    lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+    
+    parsed_items: List[Dict[str, Any]] = []
+    INDENT_BULLET_REGEX = re.compile(r'^(\s*)([-*•])\s*(.*)$')
+    
+    for line in lines:
+        match = INDENT_BULLET_REGEX.match(line)
+        if match:
+            indent_str, bullet_char, content = match.groups()
+            content = content.strip()
+            if content:
+                indent_len = len(indent_str.replace('\t', '  '))
+                level = indent_len // 2
+                parsed_items.append({
+                    "is_bullet": True,
+                    "bullet_char": bullet_char,
+                    "content": content,
+                    "level": level
+                })
+        else:
+            cleaned = line.strip()
+            parsed_items.append({"is_bullet": False, "bullet_char": "", "content": cleaned, "level": 0})
+
+    if bullet_format == "html":
+        out_lines: List[str] = []
+        in_ul = False
+        in_sub_ul = False
+        current_li_parts: List[str] = []
+
+        def flush_li():
+            nonlocal in_sub_ul
+            if current_li_parts:
+                li_content = "<br>".join(current_li_parts)
+                if in_sub_ul:
+                    out_lines.append(f"      <li>{li_content}</li>")
+                else:
+                    out_lines.append(f"  <li>{li_content}</li>")
+                current_li_parts.clear()
+
+        def close_sub_ul():
+            nonlocal in_sub_ul
+            if in_sub_ul:
+                flush_li()
+                out_lines.append("    </ul>")
+                in_sub_ul = False
+
+        for idx, item in enumerate(parsed_items):
+            if item["is_bullet"]:
+                if not in_ul:
+                    out_lines.append("<ul>")
+                    in_ul = True
+                
+                if item["level"] == 1:
+                    if not in_sub_ul:
+                        flush_li()
+                        out_lines.append("    <ul>")
+                        in_sub_ul = True
+                    else:
+                        flush_li()
+                else:
+                    if in_sub_ul:
+                        close_sub_ul()
+                    else:
+                        flush_li()
+
+                current_li_parts.append(item["content"])
+            else:
+                if in_ul:
+                    if item["content"] != "":
+                        # Continuation line of current bullet item
+                        current_li_parts.append(item["content"])
+                    else:
+                        # Empty line: check if there's another bullet coming up later
+                        has_upcoming_bullet = False
+                        for next_item in parsed_items[idx + 1:]:
+                            if next_item["content"] == "":
+                                continue
+                            if next_item["is_bullet"]:
+                                has_upcoming_bullet = True
+                            break
+                        
+                        if not has_upcoming_bullet:
+                            close_sub_ul()
+                            flush_li()
+                            out_lines.append("</ul>")
+                            in_ul = False
+                        else:
+                            flush_li()
+                else:
+                    if item["content"] != "" or (out_lines and out_lines[-1] != ""):
+                        out_lines.append(item["content"])
+                        
+        if in_ul:
+            close_sub_ul()
+            flush_li()
+            out_lines.append("</ul>")
+            
+        # Clean up excessive empty lines
+        final_lines: List[str] = []
+        for line in out_lines:
+            if line == "":
+                if final_lines and final_lines[-1] != "":
+                    final_lines.append("")
+            else:
+                final_lines.append(line)
+                
+        while final_lines and final_lines[0] == "":
+            final_lines.pop(0)
+        while final_lines and final_lines[-1] == "":
+            final_lines.pop()
+            
+        return "\n".join(final_lines)
+
+    elif bullet_format == "unicode_dot":
+        cleaned_lines: List[str] = []
+        for item in parsed_items:
+            if item["is_bullet"]:
+                prefix = "  • " if item["level"] == 1 else "• "
+                cleaned_lines.append(f"{prefix}{item['content']}")
+            else:
+                cleaned_lines.append(item["content"])
+    else:  # "markdown" default
+        cleaned_lines: List[str] = []
+        for item in parsed_items:
+            if item["is_bullet"]:
+                indent_spaces = "  " * item["level"]
+                prefix = f"{indent_spaces}- "
+                cleaned_lines.append(f"{prefix}{item['content']}")
+            else:
+                cleaned_lines.append(item["content"])
+
+    # Collapse multiple consecutive empty lines without forcing extra blank lines between bullets
+    final_lines: List[str] = []
+    
+    for line in cleaned_lines:
+        if line == "":
+            if final_lines and final_lines[-1] != "":
+                final_lines.append("")
+        else:
+            final_lines.append(line)
+            
+    while final_lines and final_lines[0] == "":
+        final_lines.pop(0)
+    while final_lines and final_lines[-1] == "":
+        final_lines.pop()
+        
+    return "\n".join(final_lines)
+
+def process_csv_content(
+    input_stream,
+    output_stream,
+    decode_html_entities: bool = True,
+    bullet_format: str = "markdown",
+    normalize_smart_quotes: bool = True,
+    escape_pipes: bool = True,
+    strip_invisible_chars: bool = True
+) -> Dict[str, Any]:
+    """
+    Reads CSV content from input_stream, cleans every cell, writes clean CSV to output_stream,
+    and returns a summary dictionary of changes and stats.
+    """
+    # Detect BOM or UTF-8
+    raw_content = input_stream.read()
+    if isinstance(raw_content, bytes):
+        try:
+            text_content = raw_content.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            text_content = raw_content.decode('latin-1')
+    else:
+        text_content = raw_content
+
+    if not text_content.strip():
+        raise ValueError("CSV file is empty.")
+
+    reader = csv.reader(io.StringIO(text_content))
+    try:
+        header = next(reader)
+    except StopIteration:
+        raise ValueError("CSV file is empty.")
+
+    writer = csv.writer(output_stream, lineterminator='\n')
+    writer.writerow(header)
+
+    # Detect Title or ID column for counting unique test cases
+    header_lower = [c.strip().lower() for c in header]
+    title_col_idx = None
+    for idx, c in enumerate(header_lower):
+        if c in ('title', '#', 'id'):
+            title_col_idx = idx
+            break
+
+    total_rows = 0
+    total_test_cases = 0
+    cells_checked = 0
+    cells_changed = 0
+    changes: List[Dict[str, Any]] = []
+    rows_preview: List[Dict[str, Any]] = []
+
+    for row_idx, row in enumerate(reader, start=1):
+        total_rows += 1
+        
+        # Count testcase when Title or ID is non-empty
+        if title_col_idx is not None and title_col_idx < len(row):
+            if row[title_col_idx].strip():
+                total_test_cases += 1
+        else:
+            total_test_cases += 1
+
+        cleaned_row = []
+        row_detail: Dict[str, Any] = {}
+
+        # Handle rows that might have fewer or more cells than header
+        for col_idx, original_val in enumerate(row):
+            cells_checked += 1
+            col_name = header[col_idx] if col_idx < len(header) else f"Column_{col_idx+1}"
+            
+            cleaned_val = clean_test_case_text(
+                original_val,
+                decode_html_entities=decode_html_entities,
+                bullet_format=bullet_format,
+                normalize_smart_quotes=normalize_smart_quotes,
+                escape_pipes=escape_pipes,
+                strip_invisible_chars=strip_invisible_chars
+            )
+            cleaned_row.append(cleaned_val)
+            
+            is_changed = (original_val != cleaned_val)
+            if is_changed:
+                cells_changed += 1
+                changes.append({
+                    "row": row_idx,
+                    "column": col_name,
+                    "original": original_val,
+                    "cleaned": cleaned_val
+                })
+            
+            row_detail[col_name] = {
+                "original": original_val,
+                "cleaned": cleaned_val,
+                "changed": is_changed
+            }
+
+        # Pad row if shorter than header
+        while len(cleaned_row) < len(header):
+            cleaned_row.append("")
+            
+        writer.writerow(cleaned_row)
+        
+        if row_idx <= 100:  # Cap preview rows to keep response fast for huge files
+            rows_preview.append({
+                "row": row_idx,
+                "data": row_detail
+            })
+
+    return {
+        "total_rows": total_rows,
+        "total_test_cases": total_test_cases if total_test_cases > 0 else total_rows,
+        "cells_checked": cells_checked,
+        "cells_changed": cells_changed,
+        "columns": header,
+        "changes": changes,
+        "rows_preview": rows_preview
+    }
+
+import os
+from pathlib import Path
+
+def clean_csv_file(
+    input_filepath: str,
+    output_filepath: str,
+    decode_html_entities: bool = True,
+    bullet_format: str = "markdown",
+    normalize_smart_quotes: bool = True,
+    escape_pipes: bool = True,
+    strip_invisible_chars: bool = True
+) -> Dict[str, Any]:
+    """
+    Cleans a CSV file at input_filepath and writes to output_filepath.
+    Returns stats and preview dictionary.
+    """
+    with open(input_filepath, 'rb') as f_in:
+        out_buffer = io.StringIO()
+        stats = process_csv_content(
+            f_in,
+            out_buffer,
+            decode_html_entities=decode_html_entities,
+            bullet_format=bullet_format,
+            normalize_smart_quotes=normalize_smart_quotes,
+            escape_pipes=escape_pipes,
+            strip_invisible_chars=strip_invisible_chars
+        )
+        
+    output_path = Path(output_filepath)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w', encoding='utf-8', newline='') as f_out:
+        f_out.write(out_buffer.getvalue())
+        
+    return stats
