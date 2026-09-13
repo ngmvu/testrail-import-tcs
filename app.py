@@ -76,6 +76,17 @@ def clean_csv():
     normalize_quotes = request.form.get('normalize_smart_quotes', 'true').lower() == 'true'
     escape_pipes = request.form.get('escape_pipes', 'true').lower() == 'true'
     strip_invisible = request.form.get('strip_invisible_chars', 'true').lower() == 'true'
+    
+    import json
+    custom_find = request.form.get('custom_find', '')
+    custom_replace = request.form.get('custom_replace', '')
+    is_regex = request.form.get('is_regex', 'false').lower() == 'true'
+    match_case = request.form.get('match_case', 'false').lower() == 'true'
+    rules_json = request.form.get('find_replace_rules', '[]')
+    try:
+        find_replace_rules = json.loads(rules_json)
+    except Exception:
+        find_replace_rules = []
 
     try:
         stats = clean_csv_file(
@@ -85,7 +96,12 @@ def clean_csv():
             bullet_format=bullet_format,
             normalize_smart_quotes=normalize_quotes,
             escape_pipes=escape_pipes,
-            strip_invisible_chars=strip_invisible
+            strip_invisible_chars=strip_invisible,
+            custom_find=custom_find if custom_find else None,
+            custom_replace=custom_replace,
+            is_regex=is_regex,
+            match_case=match_case,
+            find_replace_rules=find_replace_rules
         )
         DOWNLOAD_CACHE[file_id] = {
             "output_path": str(output_path),

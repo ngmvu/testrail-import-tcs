@@ -7,7 +7,7 @@ NON_HTML_TAG_REGEX = re.compile(r'<(?!/?(?:ul|li|b|i|p|br|code|a|span|div|strong
 BULLET_REGEX = re.compile(r'^\s*([-*•])\s*(.*)$')
 
 def escape_non_html_tags(text: str) -> str:
-    """
+    r"""
     Converts custom placeholder tags like <roomName>, <model>, <portableName> to Unicode angle brackets ＜roomName＞
     so TestRail renders them as clean literal text without HTML entity encoding (&lt;) or backslash escaping (\).
     Preserves valid HTML formatting tags like <ul>, <li>, <br>, <b>, <i>, <p>.
@@ -17,20 +17,64 @@ def escape_non_html_tags(text: str) -> str:
     return NON_HTML_TAG_REGEX.sub(r'＜\1＞', text)
 
 def clean_test_case_text(
-    text: Optional[str],
+    text: str,
     decode_html_entities: bool = True,
-    bullet_format: str = "markdown",  # "markdown", "html", "unicode_dot"
+    bullet_format: str = "markdown",
     normalize_smart_quotes: bool = True,
     escape_pipes: bool = True,
-    strip_invisible_chars: bool = True
+    strip_invisible_chars: bool = True,
+    custom_find: Optional[str] = None,
+    custom_replace: Optional[str] = None,
+    is_regex: bool = False,
+    match_case: bool = False,
+    find_replace_rules: Optional[List[Dict[str, Any]]] = None
 ) -> str:
     if text is None:
         return ""
     if not isinstance(text, str):
         text = str(text)
     
-    if not text.strip():
+    rules: List[Dict[str, Any]] = []
+    if find_replace_rules:
+        for r in find_replace_rules:
+            if isinstance(r, dict) and r.get('find'):
+                rules.append(r)
+    if custom_find:
+        rules.append({
+            'find': custom_find,
+            'replace': custom_replace if custom_replace is not None else '',
+            'is_regex': is_regex,
+            'match_case': match_case
+        })
+
+    if not text.strip() and not rules:
         return ""
+
+    # Step 0: Custom Find & Replace (supports chained sequential rules)
+    for rule in rules:
+        c_find = rule.get('find')
+        if not c_find:
+            continue
+        rep_val = rule.get('replace') if rule.get('replace') is not None else ""
+        m_case = bool(rule.get('match_case', False))
+        i_regex = bool(rule.get('is_regex', False))
+
+        if i_regex:
+            try:
+                flags = 0 if m_case else re.IGNORECASE
+                pattern = re.compile(c_find, flags=flags)
+                text = pattern.sub(rep_val, text)
+            except Exception:
+                pass  # Ignore invalid regex patterns gracefully
+        else:
+            if m_case:
+                text = text.replace(c_find, rep_val)
+            else:
+                try:
+                    pattern = re.compile(re.escape(c_find), flags=re.IGNORECASE)
+                    text = pattern.sub(lambda m: rep_val, text)
+                except Exception:
+                    pass
 
     # Step 1: Strip any leftover HTML formatting tags (span, code, font, div, p, br)
     text = re.sub(r'</?(?:span|code|font|div|p|br)\b[^>]*>', '', text, flags=re.IGNORECASE)
@@ -43,10 +87,6 @@ def clean_test_case_text(
 
     if normalize_smart_quotes:
         text = text.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
-
-    if escape_pipes:
-        # Escape pipe symbol '|' to '\|' unless already escaped
-        text = re.sub(r'(?<!\\)\|', r'\|', text)
 
     if decode_html_entities:
         # Fully decode single/double-encoded HTML entities like &amp;lt; or &lt; to raw < > " &
@@ -210,6 +250,85 @@ def clean_test_case_text(
         
     return "\n".join(final_lines)
 
+def detect_unbalanced_symbols(text: str, row_idx: int, col_name: str) -> List[Dict[str, Any]]:
+    """
+    Scans cell string for unclosed or mismatched symbol pairs: ", ', (), {}, [].
+    Filters out common English apostrophe contractions (don't, user's, it's).
+    """
+    warnings: List[Dict[str, Any]] = []
+    if not isinstance(text, str) or not text.strip():
+        return warnings
+
+    snippet = text[:100] + ('...' if len(text) > 100 else '')
+
+    # 1. Double Quotes (", “ ”)
+    q_std = text.count('"')
+    q_smart = text.count('“') + text.count('”')
+    if (q_std + q_smart) % 2 != 0:
+        warnings.append({
+            "row": row_idx,
+            "column": col_name,
+            "symbol": '"',
+            "type": "unclosed_double_quote",
+            "message": f"Row #{row_idx}, Column [{col_name}]: Unclosed double quote (\") detected.",
+            "snippet": snippet
+        })
+
+    # 2. Parentheses ()
+    open_p = text.count('(')
+    close_p = text.count(')')
+    if open_p != close_p:
+        warnings.append({
+            "row": row_idx,
+            "column": col_name,
+            "symbol": "()",
+            "type": "unbalanced_parentheses",
+            "message": f"Row #{row_idx}, Column [{col_name}]: Mismatched parentheses () detected (Open: {open_p}, Close: {close_p}).",
+            "snippet": snippet
+        })
+
+    # 3. Curly Braces {}
+    open_c = text.count('{')
+    close_c = text.count('}')
+    if open_c != close_c:
+        warnings.append({
+            "row": row_idx,
+            "column": col_name,
+            "symbol": "{}",
+            "type": "unbalanced_curly_braces",
+            "message": f"Row #{row_idx}, Column [{col_name}]: Mismatched curly braces {{}} detected (Open: {open_c}, Close: {close_c}).",
+            "snippet": snippet
+        })
+
+    # 4. Square Brackets []
+    open_s = text.count('[')
+    close_s = text.count(']')
+    if open_s != close_s:
+        warnings.append({
+            "row": row_idx,
+            "column": col_name,
+            "symbol": "[]",
+            "type": "unbalanced_square_brackets",
+            "message": f"Row #{row_idx}, Column [{col_name}]: Mismatched square brackets [] detected (Open: {open_s}, Close: {close_s}).",
+            "snippet": snippet
+        })
+
+    # 5. Single Quotes (', ‘ ’) - Strip words with internal apostrophe (don't, user's, it's)
+    cleaned_single = re.sub(r"\b\w+'\w+\b", "", text)
+    sq_std = cleaned_single.count("'")
+    sq_smart = cleaned_single.count('‘') + cleaned_single.count('’')
+    if (sq_std + sq_smart) % 2 != 0:
+        warnings.append({
+            "row": row_idx,
+            "column": col_name,
+            "symbol": "'",
+            "type": "unclosed_single_quote",
+            "message": f"Row #{row_idx}, Column [{col_name}]: Unclosed single quote (') detected.",
+            "snippet": snippet
+        })
+
+    return warnings
+
 def process_csv_content(
     input_stream,
     output_stream,
@@ -217,7 +336,12 @@ def process_csv_content(
     bullet_format: str = "markdown",
     normalize_smart_quotes: bool = True,
     escape_pipes: bool = True,
-    strip_invisible_chars: bool = True
+    strip_invisible_chars: bool = True,
+    custom_find: Optional[str] = None,
+    custom_replace: Optional[str] = None,
+    is_regex: bool = False,
+    match_case: bool = False,
+    find_replace_rules: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
     Reads CSV content from input_stream, cleans every cell, writes clean CSV to output_stream,
@@ -259,62 +383,76 @@ def process_csv_content(
     cells_changed = 0
     changes: List[Dict[str, Any]] = []
     rows_preview: List[Dict[str, Any]] = []
+    warnings: List[Dict[str, Any]] = []
 
-    for row_idx, row in enumerate(reader, start=1):
-        total_rows += 1
-        
-        # Count testcase when Title or ID is non-empty
-        if title_col_idx is not None and title_col_idx < len(row):
-            if row[title_col_idx].strip():
+    try:
+        for row_idx, row in enumerate(reader, start=1):
+            total_rows += 1
+            
+            # Count testcase when Title or ID is non-empty
+            if title_col_idx is not None and title_col_idx < len(row):
+                if row[title_col_idx].strip():
+                    total_test_cases += 1
+            else:
                 total_test_cases += 1
-        else:
-            total_test_cases += 1
 
-        cleaned_row = []
-        row_detail: Dict[str, Any] = {}
+            cleaned_row = []
+            row_detail: Dict[str, Any] = {}
 
-        # Handle rows that might have fewer or more cells than header
-        for col_idx, original_val in enumerate(row):
-            cells_checked += 1
-            col_name = header[col_idx] if col_idx < len(header) else f"Column_{col_idx+1}"
-            
-            cleaned_val = clean_test_case_text(
-                original_val,
-                decode_html_entities=decode_html_entities,
-                bullet_format=bullet_format,
-                normalize_smart_quotes=normalize_smart_quotes,
-                escape_pipes=escape_pipes,
-                strip_invisible_chars=strip_invisible_chars
-            )
-            cleaned_row.append(cleaned_val)
-            
-            is_changed = (original_val != cleaned_val)
-            if is_changed:
-                cells_changed += 1
-                changes.append({
-                    "row": row_idx,
-                    "column": col_name,
+            # Handle rows that might have fewer or more cells than header
+            for col_idx, original_val in enumerate(row):
+                cells_checked += 1
+                col_name = header[col_idx] if col_idx < len(header) else f"Column_{col_idx+1}"
+                
+                # Detect unbalanced symbol pairs in cell
+                cell_warns = detect_unbalanced_symbols(original_val, row_idx, col_name)
+                if cell_warns:
+                    warnings.extend(cell_warns)
+
+                cleaned_val = clean_test_case_text(
+                    original_val,
+                    decode_html_entities=decode_html_entities,
+                    bullet_format=bullet_format,
+                    normalize_smart_quotes=normalize_smart_quotes,
+                    escape_pipes=escape_pipes,
+                    strip_invisible_chars=strip_invisible_chars,
+                    custom_find=custom_find,
+                    custom_replace=custom_replace,
+                    is_regex=is_regex,
+                    match_case=match_case,
+                    find_replace_rules=find_replace_rules
+                )
+                cleaned_row.append(cleaned_val)
+                
+                is_changed = (original_val != cleaned_val)
+                if is_changed:
+                    cells_changed += 1
+                    changes.append({
+                        "row": row_idx,
+                        "column": col_name,
+                        "original": original_val,
+                        "cleaned": cleaned_val
+                    })
+                
+                row_detail[col_name] = {
                     "original": original_val,
-                    "cleaned": cleaned_val
-                })
-            
-            row_detail[col_name] = {
-                "original": original_val,
-                "cleaned": cleaned_val,
-                "changed": is_changed
-            }
+                    "cleaned": cleaned_val,
+                    "changed": is_changed
+                }
 
-        # Pad row if shorter than header
-        while len(cleaned_row) < len(header):
-            cleaned_row.append("")
+            # Pad row if shorter than header
+            while len(cleaned_row) < len(header):
+                cleaned_row.append("")
+                
+            writer.writerow(cleaned_row)
             
-        writer.writerow(cleaned_row)
-        
-        if row_idx <= 100:  # Cap preview rows to keep response fast for huge files
-            rows_preview.append({
-                "row": row_idx,
-                "data": row_detail
-            })
+            if row_idx <= 100:  # Cap preview rows to keep response fast for huge files
+                rows_preview.append({
+                    "row": row_idx,
+                    "data": row_detail
+                })
+    except csv.Error as e:
+        raise ValueError(f"CSV Structural Error (Unclosed double quote \" or malformed line format): {str(e)}")
 
     return {
         "total_rows": total_rows,
@@ -323,7 +461,9 @@ def process_csv_content(
         "cells_changed": cells_changed,
         "columns": header,
         "changes": changes,
-        "rows_preview": rows_preview
+        "rows_preview": rows_preview,
+        "warnings": warnings,
+        "warnings_count": len(warnings)
     }
 
 import os
@@ -336,7 +476,12 @@ def clean_csv_file(
     bullet_format: str = "markdown",
     normalize_smart_quotes: bool = True,
     escape_pipes: bool = True,
-    strip_invisible_chars: bool = True
+    strip_invisible_chars: bool = True,
+    custom_find: Optional[str] = None,
+    custom_replace: Optional[str] = None,
+    is_regex: bool = False,
+    match_case: bool = False,
+    find_replace_rules: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
     Cleans a CSV file at input_filepath and writes to output_filepath.
@@ -351,7 +496,12 @@ def clean_csv_file(
             bullet_format=bullet_format,
             normalize_smart_quotes=normalize_smart_quotes,
             escape_pipes=escape_pipes,
-            strip_invisible_chars=strip_invisible_chars
+            strip_invisible_chars=strip_invisible_chars,
+            custom_find=custom_find,
+            custom_replace=custom_replace,
+            is_regex=is_regex,
+            match_case=match_case,
+            find_replace_rules=find_replace_rules
         )
         
     output_path = Path(output_filepath)

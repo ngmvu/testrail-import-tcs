@@ -827,6 +827,26 @@ body.app-body {
     border: 1px dashed #ef4444;
 }
 
+.diff-removed {
+    background-color: rgba(239, 68, 68, 0.5);
+    color: #ffffff;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 700;
+    border: 1px solid rgba(239, 68, 68, 0.8);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.diff-added {
+    background-color: rgba(16, 185, 129, 0.5);
+    color: #ffffff;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 700;
+    border: 1px solid rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
 .change-tag {
     display: inline-block;
     font-size: 0.6875rem;

@@ -100,7 +100,7 @@
                 </div>
                 <div>
                     <span class="stat-title">Tag Auto-Escaping</span>
-                    <span class="stat-number"><code>&lt;roomName&gt;</code> Protected</span>
+                    <span class="stat-number"><code>&lt;tag&gt;</code> Protected</span>
                 </div>
             </div>
 
@@ -206,16 +206,82 @@
                                     </label>
                                     <label class="checkbox-label"
                                         style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
-                                        <input type="checkbox" id="escapePipesCheck" checked
-                                            style="accent-color: var(--primary);">
-                                        <span>Escape Pipe Symbols (<code>|</code> ➔ <code>\|</code>)</span>
-                                    </label>
-                                    <label class="checkbox-label"
-                                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
                                         <input type="checkbox" id="stripInvisibleCheck" checked
                                             style="accent-color: var(--primary);">
                                         <span>Strip Zero-Width &amp; Invisible Unicode</span>
                                     </label>
+                                </div>
+
+                                <div class="find-replace-card"
+                                    style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--primary-glow); padding: 1rem; border-radius: var(--radius-sm); margin-top: 0.5rem; margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div
+                                        style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                                        <div
+                                            style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #818cf8; font-size: 0.9rem;">
+                                            <span>🔍 Find &amp; Replace Any Character / Text</span>
+                                            <span
+                                                style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted);">(Find
+                                                &amp; Replace across all test cases)</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.875rem;">
+                                        <div class="form-group">
+                                            <label for="customFindInput"
+                                                style="font-size: 0.8125rem; color: var(--text-secondary);">Find (Text /
+                                                Pattern):</label>
+                                            <input type="text" id="customFindInput" class="form-control"
+                                                placeholder="Text or pattern to find (e.g. The candidate, <tag>)..."
+                                                style="font-size: 0.8125rem; padding: 0.5rem 0.75rem;">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="customReplaceInput"
+                                                style="font-size: 0.8125rem; color: var(--text-secondary);">Replace
+                                                with:</label>
+                                            <input type="text" id="customReplaceInput" class="form-control"
+                                                placeholder="Replacement text (leave empty to delete)..."
+                                                style="font-size: 0.8125rem; padding: 0.5rem 0.75rem;">
+                                        </div>
+                                    </div>
+                                    <div
+                                        style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                                        <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+                                            <label class="checkbox-label"
+                                                style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
+                                                <input type="checkbox" id="matchCaseCheck"
+                                                    style="accent-color: var(--primary);">
+                                                <span>Match Case</span>
+                                            </label>
+                                            <label class="checkbox-label"
+                                                style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; cursor: pointer; color: var(--text-primary);">
+                                                <input type="checkbox" id="useRegexCheck"
+                                                    style="accent-color: var(--primary);">
+                                                <span>Use Regex (Regular Expression)</span>
+                                            </label>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <button type="button" id="clearFindReplaceBtn" class="btn btn-secondary"
+                                                style="padding: 0.35rem 0.75rem; font-size: 0.8125rem;">Clear
+                                                Inputs</button>
+                                            <button type="button" id="applyFindReplaceBtn" class="btn btn-primary"
+                                                style="padding: 0.35rem 1rem; font-size: 0.8125rem; background: linear-gradient(135deg, #6366f1, #4f46e5); font-weight: 600;">Apply
+                                                Replace</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="appliedRulesSection" class="hidden"
+                                        style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                                        <div
+                                            style="font-size: 0.75rem; font-weight: 600; color: #a5b4fc; display: flex; align-items: center; justify-content: space-between;">
+                                            <span>Active Applied Replacements (<span
+                                                    id="appliedRulesCount">0</span>):</span>
+                                            <button type="button" id="clearAllRulesBtn"
+                                                style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Clear
+                                                All Rules</button>
+                                        </div>
+                                        <div id="appliedRulesContainer"
+                                            style="display: flex; flex-wrap: wrap; gap: 0.35rem;"></div>
+                                    </div>
                                 </div>
 
                                 <div class="import-method-note"
@@ -228,10 +294,10 @@
                                         • <strong>Direct API Push:</strong> Select
                                         <code>HTML &lt;ul&gt;&lt;li&gt;</code> mode and use
                                         <code>Push to TestRail API</code>.<br>
-                                        • <strong>Manual CSV Import (Giữ Nguyên Dạng Chữ
+                                        • <strong>Manual CSV Import (Preserve literal text
                                             <code>&lt;roomName&gt;</code>):</strong> Select
-                                        <code>Markdown (- item)</code> mode. Khi import file CSV trên giao diện TestRail
-                                        Web UI (Bước 2 Options)
+                                        <code>Markdown (- item)</code> mode when importing CSV files via TestRail Web UI
+                                        (Step 2 Options).
                                     </div>
                                 </div>
 
@@ -272,6 +338,30 @@
                                 </svg>
                                 <span>Download Clean CSV</span>
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- CSV Integrity Warnings Section -->
+                    <div id="csvWarningsCard" class="hidden"
+                        style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div
+                                style="display: flex; align-items: center; gap: 0.5rem; color: #fbbf24; font-weight: 700; font-size: 0.9rem;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                                <span>CSV Syntax &amp; Pairing Warnings: Detected <span id="warningsCountText">0</span>
+                                    cell(s) with unclosed/mismatched symbols (", ', (), {}, [])</span>
+                            </div>
+                        </div>
+                        <div id="warningsListContainer"
+                            style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.8125rem; color: var(--text-secondary); padding-right: 0.5rem;">
                         </div>
                     </div>
 
@@ -480,11 +570,11 @@
                 <section class="card">
                     <div class="card-header">
                         <div>
-                            <h2>📘 Hướng Dẫn Viết Formatting Standard Cho TestRail</h2>
-                            <p class="subtitle">Bảng quy chuẩn định dạng giúp test case hiển thị chuẩn xác 100% khi đẩy
-                                lên TestRail.</p>
+                            <h2>📘 TestRail Formatting Standard &amp; Escaping Guide</h2>
+                            <p class="subtitle">Formatting standards to ensure 100% accurate rendering when uploading to
+                                TestRail.</p>
                         </div>
-                        <span class="badge">Quy Chuẩn Định Dạng</span>
+                        <span class="badge">Formatting Standards</span>
                     </div>
 
                     <div class="guide-grid">
@@ -494,11 +584,11 @@
                             <div class="guide-header" style="margin-bottom: 1rem;">
                                 <span class="guide-icon">💡</span>
                                 <div>
-                                    <h3 style="font-size: 1.15rem; color: #c4b5fd;">Bảng Hướng Dẫn Chi Tiết: Bạn Viết
-                                        Thế Nào ➔ Kết Quả Trên TestRail Như Thế Đó</h3>
-                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">So
-                                        sánh trực quan giữa dữ liệu thô (dễ bị vỡ format) và kết quả hiển thị trên
-                                        TestRail sau khi qua tool.</p>
+                                    <h3 style="font-size: 1.15rem; color: #c4b5fd;">Detailed Visual Cheat Sheet: Input
+                                        Formatting ➔ TestRail Output Rendering</h3>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                        Visual comparison between raw input data (prone to broken formatting) and
+                                        cleaned output rendering on TestRail.</p>
                                 </div>
                             </div>
 
@@ -509,11 +599,11 @@
                                         <tr
                                             style="background: rgba(255,255,255,0.06); border-bottom: 2px solid var(--border-color);">
                                             <th style="padding: 0.75rem 1rem; color: var(--text-primary); width: 28%;">
-                                                Trường Hợp &amp; Input Bạn Nhập Trong CSV</th>
-                                            <th style="padding: 0.75rem 1rem; color: #f87171; width: 34%;">❌ Nếu Không
-                                                Dùng Tool (Bị Bể Format)</th>
-                                            <th style="padding: 0.75rem 1rem; color: #34d399; width: 38%;">✅ Qua Tool Xử
-                                                Lý ➔ TestRail Hiển Thị Nét Căng</th>
+                                                Use Case &amp; Input in CSV</th>
+                                            <th style="padding: 0.75rem 1rem; color: #f87171; width: 34%;">❌ Raw Input /
+                                                Without Cleaner Tool (Broken Format)</th>
+                                            <th style="padding: 0.75rem 1rem; color: #34d399; width: 38%;">✅ Processed
+                                                via Cleaner ➔ Clean 100% TestRail Rendering</th>
                                         </tr>
                                     </thead>
                                     <tbody style="divide-y: 1px solid var(--border-color);">
@@ -522,20 +612,19 @@
                                             <td style="padding: 0.875rem 1rem; vertical-align: top;">
                                                 <strong
                                                     style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">1.
-                                                    Tag Biến / Placeholder</strong>
+                                                    Variable / Placeholder Tag Protection</strong>
                                                 <code>Select stereo pair to add &lt;roomName&gt;</code>
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
-                                                TestRail xem <code>&lt;roomName&gt;</code> là thẻ HTML hoặc mã hóa thành
-                                                lỗi
-                                                <code>&amp;lt;roomName&amp;gt;</code> hoặc chèn dấu <code>\</code> xấu.
+                                                TestRail treats <code>&lt;roomName&gt;</code> as HTML or encodes it to
+                                                <code>&amp;lt;roomName&amp;gt;</code> or adds ugly backslashes.
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
-                                                Tool tự động chuyển thành tag Unicode chuẩn:
+                                                Cleaner automatically converts to protected Unicode tag:
                                                 <code>Select stereo pair to add ＜roomName＞</code>.<br>
-                                                TestRail hiển thị nguyên văn <strong>Select stereo pair to add
-                                                    ＜roomName＞</strong> sạch sẽ 100%, không bị dính
-                                                <code>&amp;lt;</code> hay <code>\</code>!
+                                                TestRail renders literal text <strong>Select stereo pair to add
+                                                    ＜roomName＞</strong> cleanly without <code>&amp;lt;</code> or
+                                                backslashes!
                                             </td>
                                         </tr>
 
@@ -544,17 +633,19 @@
                                             <td style="padding: 0.875rem 1rem; vertical-align: top;">
                                                 <strong
                                                     style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">2.
-                                                    Dấu Pipe | trong Text</strong>
-                                                <code>Verify Option A | Option B</code>
+                                                    Chained Find &amp; Replace Rules</strong>
+                                                <code>The candidate selects Option A | Option B</code>
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
-                                                Trình đọc Markdown TestRail hiểu ký tự <code>|</code> là cột bảng ➔
-                                                <strong>Rách/vỡ cấu trúc Markdown Table</strong> trên UI TestRail.
+                                                Manual tedious edits across hundreds of test cases; risk of typos and
+                                                inconsistent formatting.
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
-                                                Tool tự động đổi <code>|</code> ➔ <code>\|</code>.<br>
-                                                TestRail hiển thị nguyên vẹn câu văn <strong>Verify Option A | Option
-                                                    B</strong> mà không làm gãy bảng Markdown.
+                                                Sequentially applies rules (<code>The candidate</code> ➔
+                                                <code>The Candidate</code>, <code>Option A | Option B</code> ➔
+                                                <code>Option A or Option B</code>).<br>
+                                                All rules apply cumulatively with active tag management &amp; live diff
+                                                preview.
                                             </td>
                                         </tr>
 
@@ -563,17 +654,18 @@
                                             <td style="padding: 0.875rem 1rem; vertical-align: top;">
                                                 <strong
                                                     style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">3.
-                                                    Smart Quotes (Word/Figma)</strong>
-                                                <code>Select “Continue” or ‘Cancel’</code>
+                                                    Syntax &amp; Pairing Integrity Checks</strong>
+                                                <code>Verify "Login (Option A</code> or
+                                                <code>Payload {"key": "val"</code>
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
-                                                Ngoặc cong `“ ”` gây lỗi mã hóa CSV/JSON API hoặc bị hiển thị thành ký
-                                                tự lạ <code>â€œContinueâ€</code>.
+                                                Unclosed quotes <code>" '</code> or mismatched brackets
+                                                <code>() {} []</code> break CSV row parsing or vetch TestRail UI layout.
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
-                                                Tool tự động chuyển Smart Quotes về dạng ngoặc đơn/kép tiêu chuẩn
-                                                ASCII:<br>
-                                                <strong>Select "Continue" or 'Cancel'</strong>.
+                                                Auto-scans all cells for unbalanced symbols <code>" ' () {} []</code>
+                                                and displays an Amber Warning Banner specifying Row #, Column name &amp;
+                                                text snippet.
                                             </td>
                                         </tr>
 
@@ -582,21 +674,17 @@
                                             <td style="padding: 0.875rem 1rem; vertical-align: top;">
                                                 <strong
                                                     style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">4.
-                                                    Bullet List &amp; Thụt Lề</strong>
-                                                <pre
-                                                    style="background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">Expected:
-  - Line 1
-   - Line 2</pre>
+                                                    Smart Quotes (Word/Outlook)</strong>
+                                                <code>Select “Continue” or ‘Cancel’</code>
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
-                                                Thụt lề tab/khoảng trắng không đều làm các dấu gạch đầu dòng dính chụm
-                                                lại thành 1 dòng hoặc bị biến thành Code block xám xịt.
+                                                Curly quotes `“ ”` cause CSV/JSON encoding errors or garbled characters
+                                                like <code>â€œContinueâ€</code>.
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
-                                                Chuyển đổi hoàn hảo sang danh sách HTML
-                                                <code>&lt;ul&gt;&lt;li&gt;</code> hoặc Markdown chuẩn:<br>
-                                                • Line 1<br>
-                                                • Line 2 (các dòng thụt lề đều đặn, phân khoảng rõ ràng).
+                                                Cleaner automatically converts smart quotes to standard ASCII
+                                                quotes:<br>
+                                                <strong>Select "Continue" or 'Cancel'</strong>.
                                             </td>
                                         </tr>
 
@@ -605,35 +693,58 @@
                                             <td style="padding: 0.875rem 1rem; vertical-align: top;">
                                                 <strong
                                                     style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">5.
-                                                    Ký tự ẩn &amp; Tiếng Việt</strong>
-                                                <code>Kiểm tra&#x200B; giao&#x00A0;diện</code>
+                                                    Bullet List &amp; Indentation</strong>
+                                                <pre
+                                                    style="background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">Expected:
+  - Line 1
+   - Line 2</pre>
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
-                                                Zero-Width Space (`\u200b`), BOM (`\ufeff`) làm rách khoảng trắng, chữ
-                                                tiếng Việt bị lỗi ô vuông hoặc dấu hỏi `?`.
+                                                Irregular tab/space indentation causes bullet items to merge into 1 line
+                                                or turn into gray code blocks.
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
-                                                Gọt sạch 100% ký tự Unicode ẩn, mã hóa UTF-8 sạch sẽ giúp Tiếng Việt
-                                                hiển thị mượt mà trên TestRail.
+                                                Perfectly converts to structured HTML <code>&lt;ul&gt;&lt;li&gt;</code>
+                                                or standard Markdown list:<br>
+                                                • Line 1<br>
+                                                • Line 2 (clean nested hierarchy &amp; clear spacing).
                                             </td>
                                         </tr>
 
                                         <!-- CASE 6 -->
-                                        <tr>
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                                             <td style="padding: 0.875rem 1rem; vertical-align: top;">
                                                 <strong
                                                     style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">6.
+                                                    Invisible Unicode &amp; Special Characters</strong>
+                                                <code>Check&#x200B; UI&#x00A0;screen</code>
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
+                                                Zero-Width Space (`\u200b`), BOM (`\ufeff`) break spacing or turn
+                                                characters into question marks `?`.
+                                            </td>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
+                                                Strips 100% invisible Unicode characters and enforces clean UTF-8
+                                                encoding for smooth rendering.
+                                            </td>
+                                        </tr>
+
+                                        <!-- CASE 7 -->
+                                        <tr>
+                                            <td style="padding: 0.875rem 1rem; vertical-align: top;">
+                                                <strong
+                                                    style="color: #a7f3d0; display: block; margin-bottom: 0.25rem;">7.
                                                     Code Block / JSON Payload</strong>
                                                 <pre
                                                     style="background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">{"status": "ok", "code": 200}</pre>
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #fca5a5;">
-                                                Dòng JSON nhiều xuống dòng bị phân mảnh khi import CSV thô làm vỡ dòng
-                                                trong ô TestRail.
+                                                Multiline JSON strings get fragmented when importing raw CSV, breaking
+                                                rows in TestRail cells.
                                             </td>
                                             <td style="padding: 0.875rem 1rem; vertical-align: top; color: #6ee7b7;">
-                                                Giữ nguyên vẹn toàn bộ ngắt dòng nội dung ô, hiển thị thành khối
-                                                Markdown Code sắc nét trên TestRail UI.
+                                                Preserves all cell multiline linebreaks cleanly, rendering crisp
+                                                Markdown code blocks on TestRail UI.
                                             </td>
                                         </tr>
                                     </tbody>
@@ -647,11 +758,11 @@
                             <div class="guide-header" style="margin-bottom: 0.875rem;">
                                 <span class="guide-icon">⌨️</span>
                                 <div>
-                                    <h3 style="font-size: 1.1rem; color: #a7f3d0;">Hướng Dẫn Thao Tác Phím Nhập Dữ Liệu
-                                        Trong Excel (Cấp Cha vs Cấp Con)</h3>
+                                    <h3 style="font-size: 1.1rem; color: #a7f3d0;">Excel Keyboard Shortcuts &amp; Bullet
+                                        Level Guide (Parent vs Child)</h3>
                                     <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                                        Quy tắc phân biệt giữa Bullet chính (ngang hàng) và Bullet con (thụt lề 1 nấc)
-                                        khi nhập ô trong Excel.</p>
+                                        Rules to distinguish main parent bullets vs indented sub-bullets inside an Excel
+                                        cell.</p>
                                 </div>
                             </div>
 
@@ -661,24 +772,25 @@
                                     style="background: rgba(0,0,0,0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                                     <strong
                                         style="color: #6ee7b7; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">🎹
-                                        Chi tiết thao tác phím khi nhập trong 1 ô Excel:</strong>
+                                        Step-by-step Excel keyboard shortcuts inside a cell:</strong>
                                     <ul
                                         style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
-                                        <li>• <strong>Dòng 1 (Mục chính):</strong> Gõ <code>- Mục chính 1</code> ➔ Nhấn
+                                        <li>• <strong>Line 1 (Parent item):</strong> Type <code>- Main item 1</code> ➔
+                                            Press
                                             <kbd
                                                 style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
-                                                + Enter</kbd> để xuống dòng trong ô.
+                                                + Enter</kbd> for line break inside cell.
                                         </li>
-                                        <li>• <strong>Dòng 2 (Mục con):</strong> Nhấn <strong>dấu cách (Spacebar) 2
-                                                lần</strong> ➔ Gõ <code>- Mục con 1.1</code> ➔ Nhấn <kbd
+                                        <li>• <strong>Line 2 (Child item):</strong> Press <strong>Spacebar 2
+                                                times</strong> ➔ Type <code>- Sub-item 1.1</code> ➔ Press <kbd
                                                 style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
-                                                + Enter</kbd> xuống dòng.</li>
-                                        <li>• <strong>Dòng 3 (Mục con):</strong> Nhấn <strong>dấu cách (Spacebar) 2
-                                                lần</strong> ➔ Gõ <code>- Mục con 1.2</code> ➔ Nhấn <kbd
+                                                + Enter</kbd> for line break.</li>
+                                        <li>• <strong>Line 3 (Child item):</strong> Press <strong>Spacebar 2
+                                                times</strong> ➔ Type <code>- Sub-item 1.2</code> ➔ Press <kbd
                                                 style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
-                                                + Enter</kbd> xuống dòng.</li>
-                                        <li>• <strong>Dòng 4 (Mục chính):</strong> Gõ <code>- Mục chính 2</code> (không
-                                            cách ở đầu).</li>
+                                                + Enter</kbd> for line break.</li>
+                                        <li>• <strong>Line 4 (Parent item):</strong> Type <code>- Main item 2</code> (no
+                                            leading space).</li>
                                     </ul>
                                 </div>
 
@@ -686,24 +798,24 @@
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;">
                                     <div
                                         style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #6366f1;">
-                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Quy
-                                            Tắc Cốt Lõi:</strong>
+                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Core
+                                            Hierarchy Rules:</strong>
                                         <div style="color: var(--text-secondary);">
-                                            • <strong>Cấp cha (Mục chính):</strong> Không cách ở đầu
+                                            • <strong>Parent Level (Main item):</strong> No leading space
                                             (<code>- Item</code>).<br>
-                                            • <strong>Cấp con (Thụt lề):</strong> Thêm 2 khoảng trắng trước dấu gạch đầu
-                                            dòng (<code>&nbsp;&nbsp;- Sub-item</code>).
+                                            • <strong>Child Level (Indented):</strong> Add 2 leading spaces before dash
+                                            (<code>&nbsp;&nbsp;- Sub-item</code>).
                                         </div>
                                     </div>
                                     <div
                                         style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #38bdf8;">
-                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️ Kết
-                                            Quả Hiển Thị Trên TestRail:</strong>
+                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️
+                                            Output Rendering on TestRail:</strong>
                                         <div style="font-family: monospace; color: #e2e8f0; font-size: 0.8rem;">
-                                            • Mục chính 1<br>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;• Mục con 1.1<br>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;• Mục con 1.2<br>
-                                            • Mục chính 2
+                                            • Main item 1<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;• Sub-item 1.1<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;• Sub-item 1.2<br>
+                                            • Main item 2
                                         </div>
                                     </div>
                                 </div>

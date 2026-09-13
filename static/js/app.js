@@ -112,12 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cleanBtn.disabled = true;
     }
 
-    // Live Auto-Reprocess when any formatting option changes
+    // Live Auto-Reprocess when formatting options change
     const liveOptionIds = [
         'bulletFormatSelect',
         'decodeHtmlEntitiesCheck',
         'normQuotesCheck',
-        'escapePipesCheck',
         'stripInvisibleCheck'
     ];
     liveOptionIds.forEach(id => {
@@ -126,6 +125,120 @@ document.addEventListener('DOMContentLoaded', () => {
             elem.addEventListener('change', () => {
                 if (currentFile) {
                     uploadForm.requestSubmit();
+                }
+            });
+        }
+    });
+
+    // Cumulative Find & Replace rules state
+    let appliedRules = [];
+
+    function renderAppliedRules() {
+        const section = document.getElementById('appliedRulesSection');
+        const container = document.getElementById('appliedRulesContainer');
+        const countSpan = document.getElementById('appliedRulesCount');
+        if (!section || !container) return;
+
+        if (appliedRules.length === 0) {
+            section.classList.add('hidden');
+            container.innerHTML = '';
+            if (countSpan) countSpan.textContent = '0';
+            return;
+        }
+
+        section.classList.remove('hidden');
+        if (countSpan) countSpan.textContent = appliedRules.length;
+        container.innerHTML = '';
+
+        appliedRules.forEach((rule, idx) => {
+            const chip = document.createElement('div');
+            chip.style.cssText = 'background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #c7d2fe; padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);';
+            
+            const findText = escapeHtml(rule.find);
+            const replText = escapeHtml(rule.replace !== '' ? rule.replace : '∅ (delete)');
+            const opts = [];
+            if (rule.match_case) opts.push('case');
+            if (rule.is_regex) opts.push('regex');
+            const optStr = opts.length > 0 ? ` [${opts.join(', ')}]` : '';
+
+            chip.innerHTML = `
+                <span>#${idx + 1} <strong>"${findText}"</strong> ➔ <strong>"${replText}"</strong>${optStr}</span>
+                <button type="button" class="remove-rule-btn" data-idx="${idx}" title="Remove rule" style="background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; margin-left: 0.25rem;">&times;</button>
+            `;
+
+            const removeBtn = chip.querySelector('.remove-rule-btn');
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                appliedRules.splice(idx, 1);
+                renderAppliedRules();
+                if (currentFile) {
+                    uploadForm.requestSubmit();
+                }
+            });
+
+            container.appendChild(chip);
+        });
+    }
+
+    const clearAllRulesBtn = document.getElementById('clearAllRulesBtn');
+    if (clearAllRulesBtn) {
+        clearAllRulesBtn.addEventListener('click', () => {
+            appliedRules = [];
+            renderAppliedRules();
+            if (currentFile) {
+                uploadForm.requestSubmit();
+            }
+        });
+    }
+
+    // Explicit confirmation button for Find & Replace
+    const applyFindReplaceBtn = document.getElementById('applyFindReplaceBtn');
+    if (applyFindReplaceBtn) {
+        applyFindReplaceBtn.addEventListener('click', () => {
+            const findIn = document.getElementById('customFindInput');
+            const replIn = document.getElementById('customReplaceInput');
+            const mcCheck = document.getElementById('matchCaseCheck');
+            const regexCheck = document.getElementById('useRegexCheck');
+
+            if (findIn && findIn.value.trim() !== '') {
+                appliedRules.push({
+                    find: findIn.value,
+                    replace: replIn ? replIn.value : '',
+                    match_case: mcCheck ? mcCheck.checked : false,
+                    is_regex: regexCheck ? regexCheck.checked : false
+                });
+                findIn.value = '';
+                if (replIn) replIn.value = '';
+                renderAppliedRules();
+            }
+
+            if (currentFile) {
+                uploadForm.requestSubmit();
+            }
+        });
+    }
+
+    const clearFindReplaceBtn = document.getElementById('clearFindReplaceBtn');
+    if (clearFindReplaceBtn) {
+        clearFindReplaceBtn.addEventListener('click', () => {
+            const findIn = document.getElementById('customFindInput');
+            const replIn = document.getElementById('customReplaceInput');
+            const mcCheck = document.getElementById('matchCaseCheck');
+            const regexCheck = document.getElementById('useRegexCheck');
+            if (findIn) findIn.value = '';
+            if (replIn) replIn.value = '';
+            if (mcCheck) mcCheck.checked = false;
+            if (regexCheck) regexCheck.checked = false;
+        });
+    }
+
+    ['customFindInput', 'customReplaceInput'].forEach(id => {
+        const elem = document.getElementById(id);
+        if (elem) {
+            elem.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (applyFindReplaceBtn) applyFindReplaceBtn.click();
                 }
             });
         }
@@ -165,6 +278,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const stripInvisibleCheck = document.getElementById('stripInvisibleCheck');
         if (stripInvisibleCheck) {
             formData.append('strip_invisible_chars', stripInvisibleCheck.checked ? 'true' : 'false');
+        }
+
+        const customFindInput = document.getElementById('customFindInput');
+        if (customFindInput && customFindInput.value !== '') {
+            formData.append('custom_find', customFindInput.value);
+        }
+
+        const customReplaceInput = document.getElementById('customReplaceInput');
+        if (customReplaceInput) {
+            formData.append('custom_replace', customReplaceInput.value);
+        }
+
+        const matchCaseCheck = document.getElementById('matchCaseCheck');
+        if (matchCaseCheck) {
+            formData.append('match_case', matchCaseCheck.checked ? 'true' : 'false');
+        }
+
+        const useRegexCheck = document.getElementById('useRegexCheck');
+        if (useRegexCheck) {
+            formData.append('is_regex', useRegexCheck.checked ? 'true' : 'false');
+        }
+
+        if (appliedRules.length > 0) {
+            formData.append('find_replace_rules', JSON.stringify(appliedRules));
         }
 
         try {
@@ -218,6 +355,31 @@ document.addEventListener('DOMContentLoaded', () => {
         renderChangesTable(stats.changes);
         renderUnchangedTable(stats.rows_preview, stats.columns);
         renderGridView(stats.columns, stats.rows_preview);
+
+        // Render Warnings Banner if any unclosed quotes detected
+        const csvWarningsCard = document.getElementById('csvWarningsCard');
+        const warningsCountText = document.getElementById('warningsCountText');
+        const warningsListContainer = document.getElementById('warningsListContainer');
+
+        if (csvWarningsCard && warningsListContainer) {
+            if (stats.warnings && stats.warnings.length > 0) {
+                csvWarningsCard.classList.remove('hidden');
+                if (warningsCountText) warningsCountText.textContent = stats.warnings.length.toLocaleString();
+                warningsListContainer.innerHTML = '';
+
+                stats.warnings.forEach(w => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'background: rgba(0,0,0,0.25); border-left: 3px solid #f59e0b; padding: 0.35rem 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem;';
+                    item.innerHTML = `
+                        <div><strong style="color: #fbbf24;">Dòng #${w.row}</strong>, Cột <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: Chứa dấu ngoặc kép (") chưa đóng.</div>
+                        <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">"<em>${escapeHtml(w.snippet)}</em>"</div>
+                    `;
+                    warningsListContainer.appendChild(item);
+                });
+            } else {
+                csvWarningsCard.classList.add('hidden');
+            }
+        }
 
         if (stats.columns) {
             renderColumnMapping(stats.columns, 'trColumnMappingContainer');
@@ -276,6 +438,118 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function computeInlineDiff(originalText, cleanedText) {
+        if (originalText === null || originalText === undefined) originalText = '';
+        if (cleanedText === null || cleanedText === undefined) cleanedText = '';
+
+        const origStr = String(originalText).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const cleanStr = String(cleanedText).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+        if (origStr === cleanStr) {
+            return {
+                originalHtml: formatDiffText(origStr),
+                cleanedHtml: formatDiffText(cleanStr)
+            };
+        }
+
+        // Tokenize by word boundary, punctuation, symbols, whitespace
+        function tokenize(str) {
+            return str.match(/([^\s\w]|[a-zA-Z0-9_]+|\s+)/g) || [];
+        }
+
+        function isTokenEqual(a, b) {
+            if (a === b) return true;
+            // Normalize Unicode angle brackets (< vs ＜, > vs ＞) for tag protection comparison
+            const normA = a.replace(/＜/g, '<').replace(/＞/g, '>');
+            const normB = b.replace(/＜/g, '<').replace(/＞/g, '>');
+            if (normA === normB) return true;
+
+            // Treat whitespace/indentation tokens as equal if both are pure whitespace
+            if (/^\s+$/.test(a) && /^\s+$/.test(b)) return true;
+
+            return false;
+        }
+
+        const tokensA = tokenize(origStr);
+        const tokensB = tokenize(cleanStr);
+
+        const m = tokensA.length;
+        const n = tokensB.length;
+
+        // DP matrix for LCS
+        const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+        for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+                if (isTokenEqual(tokensA[i - 1], tokensB[j - 1])) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        // Backtrack to find matches
+        let i = m, j = n;
+        const matches = [];
+        while (i > 0 && j > 0) {
+            if (isTokenEqual(tokensA[i - 1], tokensB[j - 1])) {
+                matches.push({ aIdx: i - 1, bIdx: j - 1 });
+                i--;
+                j--;
+            } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+                i--;
+            } else {
+                j--;
+            }
+        }
+        matches.reverse();
+
+        let origHtml = '';
+        let cleanHtml = '';
+
+        let currA = 0;
+        let currB = 0;
+
+        for (const match of matches) {
+            while (currA < match.aIdx) {
+                const tok = tokensA[currA];
+                origHtml += `<span class="diff-removed">${escapeHtml(tok)}</span>`;
+                currA++;
+            }
+
+            while (currB < match.bIdx) {
+                const tok = tokensB[currB];
+                cleanHtml += `<span class="diff-added">${escapeHtml(tok)}</span>`;
+                currB++;
+            }
+
+            const tokA = tokensA[currA];
+            const tokB = tokensB[currB];
+            origHtml += formatDiffText(tokA);
+            cleanHtml += formatDiffText(tokB);
+
+            currA++;
+            currB++;
+        }
+
+        while (currA < m) {
+            const tok = tokensA[currA];
+            origHtml += `<span class="diff-removed">${escapeHtml(tok)}</span>`;
+            currA++;
+        }
+
+        while (currB < n) {
+            const tok = tokensB[currB];
+            cleanHtml += `<span class="diff-added">${escapeHtml(tok)}</span>`;
+            currB++;
+        }
+
+        return {
+            originalHtml: origHtml,
+            cleanedHtml: cleanHtml
+        };
+    }
+
     function renderChangesTable(changes) {
         changesTableBody.innerHTML = '';
 
@@ -298,13 +572,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 changeLabel = '<span class="change-tag ws-tag">Removed Trailing Space</span>';
             } else if (item.original.includes('  -') || item.original.includes('   -')) {
                 changeLabel = '<span class="change-tag bullet-tag">Normalized Bullet Indent</span>';
+            } else {
+                changeLabel = '<span class="change-tag bullet-tag">Text Modified</span>';
             }
+
+            const diff = computeInlineDiff(item.original, item.cleaned);
 
             tr.innerHTML = `
                 <td><strong>#${item.row}</strong> ${changeLabel}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-secondary); border-color: var(--border-color);">${escapeHtml(item.column)}</span></td>
-                <td><div class="text-box original">${formatDiffText(item.original)}</div></td>
-                <td><div class="text-box cleaned">${formatDiffText(item.cleaned)}</div></td>
+                <td><div class="text-box original">${diff.originalHtml}</div></td>
+                <td><div class="text-box cleaned">${diff.cleanedHtml}</div></td>
             `;
             tr.addEventListener('click', () => {
                 if (processedData && processedData.rows_preview) {
@@ -320,11 +598,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text === null || text === undefined) return '';
         const lines = String(text).split('\n');
         return lines.map(line => {
-            const match = line.match(/(\s+)$/);
+            const match = line.match(/^(\S.*?)(\s+)$/);
             if (match) {
-                const base = line.slice(0, -match[1].length);
-                const spaces = match[1].replace(/ /g, '·').replace(/\t/g, '→');
-                return escapeHtml(base) + `<span class="ws-highlight" title="${match[1].length} trailing space(s)">${spaces}</span>`;
+                const base = match[1];
+                const spaces = match[2].replace(/ /g, '·').replace(/\t/g, '→');
+                return escapeHtml(base) + `<span class="ws-highlight" title="${match[2].length} trailing space(s)">${spaces}</span>`;
             }
             return escapeHtml(line);
         }).join('\n');
@@ -373,15 +651,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cellClass = isChanged ? 'excel-cell excel-cell-changed' : 'excel-cell';
 
                 let badgeHtml = '';
+                let cellTextHtml = formatDiffText(cellObj.cleaned);
+
                 if (isChanged) {
                     badgeHtml = `<span class="excel-edited-badge" title="Original text: ${escapeHtml(cellObj.original)}">✏️ EDITED</span>`;
+                    const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
+                    cellTextHtml = diff.cleanedHtml;
                 }
 
                 cellsHtml += `
                     <td class="${cellClass}">
                         <div class="excel-cell-content">
                             ${badgeHtml}
-                            <div class="excel-cell-text">${formatDiffText(cellObj.cleaned)}</div>
+                            <div class="excel-cell-text">${cellTextHtml}</div>
                         </div>
                     </td>
                 `;
@@ -469,11 +751,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let diffHtml = '';
             if (cellObj.changed) {
+                const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
                 diffHtml = `
                     <div style="font-size: 0.75rem; color: var(--danger); font-weight: 600;">Original:</div>
-                    <div class="text-box original" style="font-size: 0.8125rem;">${formatDiffText(cellObj.original)}</div>
+                    <div class="text-box original" style="font-size: 0.8125rem;">${diff.originalHtml}</div>
                     <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 0.25rem;">Cleaned:</div>
-                    <div class="text-box cleaned" style="font-size: 0.8125rem;">${formatDiffText(cellObj.cleaned)}</div>
+                    <div class="text-box cleaned" style="font-size: 0.8125rem;">${diff.cleanedHtml}</div>
                 `;
             } else {
                 diffHtml = `<div class="text-box" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.8125rem;">${escapeHtml(cellObj.cleaned || '(empty)')}</div>`;
