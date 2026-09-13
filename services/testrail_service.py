@@ -175,6 +175,7 @@ def parse_csv_into_test_cases(csv_text: str) -> List[Dict[str, Any]]:
                     header_map.get('expected result') or 
                     header_map.get('expected_result'))
     col_refs = header_map.get('references') or header_map.get('reference') or header_map.get('refs')
+    col_status = header_map.get('status')
     col_assigned = header_map.get('assigned')
     
     test_cases: List[Dict[str, Any]] = []

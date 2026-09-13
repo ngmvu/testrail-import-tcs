@@ -9,37 +9,37 @@
     --bg-card: #141c2e;
     --bg-card-hover: #1e293b;
     --bg-subtle: #0f172a;
-    
+
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
-    
+
     --primary: #6366f1;
     --primary-hover: #4f46e5;
     --primary-glow: rgba(99, 102, 241, 0.35);
     --primary-light: rgba(99, 102, 241, 0.12);
-    
+
     --success: #10b981;
     --success-hover: #059669;
     --success-bg: rgba(16, 185, 129, 0.12);
-    
+
     --warning: #f59e0b;
     --warning-bg: rgba(245, 158, 11, 0.15);
-    
+
     --danger: #ef4444;
     --danger-bg: rgba(239, 68, 68, 0.15);
-    
+
     --border-color: #26334d;
     --border-light: #334155;
-    
+
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
-    
+
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 6px 24px -4px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 12px 40px -6px rgba(0, 0, 0, 0.6);
-    
+
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -57,7 +57,7 @@ body.app-body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-image: 
+    background-image:
         radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
         radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
     background-attachment: fixed;
@@ -239,10 +239,25 @@ body.app-body {
     flex-shrink: 0;
 }
 
-.stat-icon-wrapper.purple { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
-.stat-icon-wrapper.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-.stat-icon-wrapper.blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-.stat-icon-wrapper.orange { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.stat-icon-wrapper.purple {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+}
+
+.stat-icon-wrapper.green {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.stat-icon-wrapper.blue {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+}
+
+.stat-icon-wrapper.orange {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
 
 .stat-title {
     display: block;
@@ -321,7 +336,8 @@ body.app-body {
     transition: var(--transition);
 }
 
-.dropzone:hover, .dropzone.dragover {
+.dropzone:hover,
+.dropzone.dragover {
     border-color: var(--primary);
     background-color: var(--primary-light);
     box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.1);
@@ -683,12 +699,12 @@ body.app-body {
 }
 
 .excel-cell {
-    padding: 0.75rem 1rem !align-content;
-    vertical-align: top;
-    min-width: 220px;
-    font-size: 0.8125rem;
-    line-height: 1.55;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.75rem 1rem !important;
+    vertical-align: top !important;
+    min-width: 220px !important;
+    font-size: 0.8125rem !important;
+    line-height: 1.55 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -1086,7 +1102,9 @@ body.app-body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* MODAL OVERLAY */
@@ -1119,8 +1137,15 @@ body.app-body {
 }
 
 @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .modal-header {

@@ -370,8 +370,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 stats.warnings.forEach(w => {
                     const item = document.createElement('div');
                     item.style.cssText = 'background: rgba(0,0,0,0.25); border-left: 3px solid #f59e0b; padding: 0.35rem 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem;';
+                    const warnMsg = w.message ? (w.message.includes(']: ') ? w.message.split(']: ')[1] : w.message) : 'Unclosed or mismatched symbol detected.';
                     item.innerHTML = `
-                        <div><strong style="color: #fbbf24;">Dòng #${w.row}</strong>, Cột <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: Chứa dấu ngoặc kép (") chưa đóng.</div>
+                        <div><strong style="color: #fbbf24;">Row #${w.row}</strong>, Column <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: ${escapeHtml(warnMsg)}</div>
                         <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">"<em>${escapeHtml(w.snippet)}</em>"</div>
                     `;
                     warningsListContainer.appendChild(item);

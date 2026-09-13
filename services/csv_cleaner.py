@@ -50,6 +50,24 @@ def clean_test_case_text(
     if not text.strip() and not rules:
         return ""
 
+    if strip_invisible_chars:
+        # Strip zero-width space \u200b, zero-width no-break space \ufeff, soft hyphen \u00ad
+        text = re.sub(r'[\u200b\ufeff\u00ad]', '', text)
+        # Convert non-breaking space \u00a0 to standard space
+        text = text.replace('\u00a0', ' ')
+
+    if normalize_smart_quotes:
+        text = text.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
+
+    if decode_html_entities:
+        # Fully decode single/double-encoded HTML entities like &amp;lt; or &lt; to raw < > " &
+        import html
+        for _ in range(3):
+            unescaped = html.unescape(text)
+            if unescaped == text:
+                break
+            text = unescaped
+
     # Step 0: Custom Find & Replace (supports chained sequential rules)
     for rule in rules:
         c_find = rule.get('find')
@@ -58,6 +76,9 @@ def clean_test_case_text(
         rep_val = rule.get('replace') if rule.get('replace') is not None else ""
         m_case = bool(rule.get('match_case', False))
         i_regex = bool(rule.get('is_regex', False))
+
+        if normalize_smart_quotes:
+            c_find = c_find.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
 
         if i_regex:
             try:
@@ -78,24 +99,6 @@ def clean_test_case_text(
 
     # Step 1: Strip any leftover HTML formatting tags (span, code, font, div, p, br)
     text = re.sub(r'</?(?:span|code|font|div|p|br)\b[^>]*>', '', text, flags=re.IGNORECASE)
-
-    if strip_invisible_chars:
-        # Strip zero-width space \u200b, zero-width no-break space \ufeff, soft hyphen \u00ad
-        text = re.sub(r'[\u200b\ufeff\u00ad]', '', text)
-        # Convert non-breaking space \u00a0 to standard space
-        text = text.replace('\u00a0', ' ')
-
-    if normalize_smart_quotes:
-        text = text.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
-
-    if decode_html_entities:
-        # Fully decode single/double-encoded HTML entities like &amp;lt; or &lt; to raw < > " &
-        import html
-        for _ in range(3):
-            unescaped = html.unescape(text)
-            if unescaped == text:
-                break
-            text = unescaped
 
     # Convert custom non-HTML placeholder tags like <model>, <portableName>, <roomName> to Unicode angle brackets ＜tag＞
     # so TestRail renders them literally as ＜model＞ and ＜portableName＞ without &lt; or \ escaping
@@ -403,11 +406,6 @@ def process_csv_content(
             for col_idx, original_val in enumerate(row):
                 cells_checked += 1
                 col_name = header[col_idx] if col_idx < len(header) else f"Column_{col_idx+1}"
-                
-                # Detect unbalanced symbol pairs in cell
-                cell_warns = detect_unbalanced_symbols(original_val, row_idx, col_name)
-                if cell_warns:
-                    warnings.extend(cell_warns)
 
                 cleaned_val = clean_test_case_text(
                     original_val,
@@ -423,6 +421,11 @@ def process_csv_content(
                     find_replace_rules=find_replace_rules
                 )
                 cleaned_row.append(cleaned_val)
+
+                # Detect unbalanced symbol pairs in the final cleaned cell
+                cell_warns = detect_unbalanced_symbols(cleaned_val, row_idx, col_name)
+                if cell_warns:
+                    warnings.extend(cell_warns)
                 
                 is_changed = (original_val != cleaned_val)
                 if is_changed:
