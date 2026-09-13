@@ -183,12 +183,6 @@
                                         </option>
                                     </select>
                                 </div>
-                                <div class="tag-protection-info">
-                                    <span class="info-badge">🛡️ Tag Protection Active</span>
-                                    <span class="info-text">Placeholder tags like <code>&lt;roomName&gt;</code>,
-                                        <code>&lt;HT Primary&gt;</code> are auto-escaped to prevent TestRail from
-                                        stripping them.</span>
-                                </div>
                                 <div class="sanitization-toggles-grid"
                                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-top: 0.875rem; margin-bottom: 0.875rem; background: rgba(0, 0, 0, 0.2); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                                     <label class="checkbox-label"
@@ -584,24 +578,41 @@
                             <div class="guide-header" style="margin-bottom: 0.875rem;">
                                 <span class="guide-icon">📋</span>
                                 <div>
-                                    <h3 style="font-size: 1.1rem; color: #a5b4fc;">Required &amp; Recommended CSV Columns for Test Case Suite</h3>
+                                    <h3 style="font-size: 1.1rem; color: #a5b4fc;">Required &amp; Recommended CSV
+                                        Columns for Test Case Suite</h3>
                                     <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                                        Ensure your CSV file contains the following standard column headers when writing and importing test cases:</p>
+                                        Ensure your CSV file contains the following standard column headers when writing
+                                        and importing test cases:</p>
                                 </div>
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Type</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Priority</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Applicable Products</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Links to Related Document</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Section</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Sub-Section</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Title</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Preconditions</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Steps</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Steps (Expected Result)</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Status</span>
-                                <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">References</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Type</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Priority</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Applicable
+                                    Products</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Links
+                                    to Related Document</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Section</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Sub-Section</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Title</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Preconditions</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Steps</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Steps
+                                    (Expected Result)</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">Status</span>
+                                <span class="badge"
+                                    style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.8125rem; padding: 0.35rem 0.65rem; font-weight: 600;">References</span>
                             </div>
                         </div>
 

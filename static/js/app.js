@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cumulative Find & Replace rules state
     let appliedRules = [];
+    let editingRuleIndex = null;
 
     function renderAppliedRules() {
         const section = document.getElementById('appliedRulesSection');
@@ -143,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             section.classList.add('hidden');
             container.innerHTML = '';
             if (countSpan) countSpan.textContent = '0';
+            editingRuleIndex = null;
+            updateApplyButtonLabel();
             return;
         }
 
@@ -152,7 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         appliedRules.forEach((rule, idx) => {
             const chip = document.createElement('div');
-            chip.style.cssText = 'background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #c7d2fe; padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);';
+            const isEditingThis = (editingRuleIndex === idx);
+            const borderStyle = isEditingThis 
+                ? 'background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fef08a;' 
+                : 'background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #c7d2fe;';
+
+            chip.style.cssText = `${borderStyle} padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);`;
             
             const findText = escapeHtml(rule.find);
             const replText = escapeHtml(rule.replace !== '' ? rule.replace : '∅ (delete)');
@@ -163,12 +171,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chip.innerHTML = `
                 <span>#${idx + 1} <strong>"${findText}"</strong> ➔ <strong>"${replText}"</strong>${optStr}</span>
-                <button type="button" class="remove-rule-btn" data-idx="${idx}" title="Remove rule" style="background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; margin-left: 0.25rem;">&times;</button>
+                <button type="button" class="edit-rule-btn" data-idx="${idx}" title="Edit rule" style="background: none; border: none; color: #a5b4fc; font-weight: bold; cursor: pointer; font-size: 0.8rem; line-height: 1; padding: 0 0.2rem; margin-left: 0.3rem;">✏️ Edit</button>
+                <button type="button" class="remove-rule-btn" data-idx="${idx}" title="Remove rule" style="background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem;">&times;</button>
             `;
+
+            const editBtn = chip.querySelector('.edit-rule-btn');
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                loadRuleForEditing(idx);
+            });
 
             const removeBtn = chip.querySelector('.remove-rule-btn');
             removeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (editingRuleIndex === idx) editingRuleIndex = null;
                 appliedRules.splice(idx, 1);
                 renderAppliedRules();
                 if (currentFile) {
@@ -178,12 +194,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
             container.appendChild(chip);
         });
+
+        updateApplyButtonLabel();
+    }
+
+    function loadRuleForEditing(idx) {
+        if (idx < 0 || idx >= appliedRules.length) return;
+        editingRuleIndex = idx;
+        const rule = appliedRules[idx];
+
+        const findIn = document.getElementById('customFindInput');
+        const replIn = document.getElementById('customReplaceInput');
+        const mcCheck = document.getElementById('matchCaseCheck');
+        const regexCheck = document.getElementById('useRegexCheck');
+
+        if (findIn) findIn.value = rule.find || '';
+        if (replIn) replIn.value = rule.replace || '';
+        if (mcCheck) mcCheck.checked = !!rule.match_case;
+        if (regexCheck) regexCheck.checked = !!rule.is_regex;
+
+        renderAppliedRules();
+        if (findIn) findIn.focus();
+    }
+
+    function updateApplyButtonLabel() {
+        const applyBtn = document.getElementById('applyFindReplaceBtn');
+        if (!applyBtn) return;
+        if (editingRuleIndex !== null) {
+            applyBtn.textContent = `✏️ Update Rule #${editingRuleIndex + 1}`;
+            applyBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+        } else {
+            applyBtn.textContent = 'Apply Replace';
+            applyBtn.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+        }
     }
 
     const clearAllRulesBtn = document.getElementById('clearAllRulesBtn');
     if (clearAllRulesBtn) {
         clearAllRulesBtn.addEventListener('click', () => {
             appliedRules = [];
+            editingRuleIndex = null;
             renderAppliedRules();
             if (currentFile) {
                 uploadForm.requestSubmit();
@@ -201,12 +251,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const regexCheck = document.getElementById('useRegexCheck');
 
             if (findIn && findIn.value.trim() !== '') {
-                appliedRules.push({
+                const newRule = {
                     find: findIn.value,
                     replace: replIn ? replIn.value : '',
                     match_case: mcCheck ? mcCheck.checked : false,
                     is_regex: regexCheck ? regexCheck.checked : false
-                });
+                };
+
+                if (editingRuleIndex !== null && editingRuleIndex < appliedRules.length) {
+                    appliedRules[editingRuleIndex] = newRule;
+                    editingRuleIndex = null;
+                } else {
+                    appliedRules.push(newRule);
+                }
+
                 findIn.value = '';
                 if (replIn) replIn.value = '';
                 renderAppliedRules();
@@ -221,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearFindReplaceBtn = document.getElementById('clearFindReplaceBtn');
     if (clearFindReplaceBtn) {
         clearFindReplaceBtn.addEventListener('click', () => {
+            editingRuleIndex = null;
             const findIn = document.getElementById('customFindInput');
             const replIn = document.getElementById('customReplaceInput');
             const mcCheck = document.getElementById('matchCaseCheck');
@@ -229,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (replIn) replIn.value = '';
             if (mcCheck) mcCheck.checked = false;
             if (regexCheck) regexCheck.checked = false;
+            updateApplyButtonLabel();
         });
     }
 
@@ -281,23 +341,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const customFindInput = document.getElementById('customFindInput');
-        if (customFindInput && customFindInput.value !== '') {
-            formData.append('custom_find', customFindInput.value);
-        }
-
         const customReplaceInput = document.getElementById('customReplaceInput');
-        if (customReplaceInput) {
-            formData.append('custom_replace', customReplaceInput.value);
-        }
-
         const matchCaseCheck = document.getElementById('matchCaseCheck');
-        if (matchCaseCheck) {
-            formData.append('match_case', matchCaseCheck.checked ? 'true' : 'false');
-        }
-
         const useRegexCheck = document.getElementById('useRegexCheck');
-        if (useRegexCheck) {
-            formData.append('is_regex', useRegexCheck.checked ? 'true' : 'false');
+
+        // Auto-commit any non-empty text remaining in Find input as an active rule
+        if (customFindInput && customFindInput.value.trim() !== '') {
+            const currentRule = {
+                find: customFindInput.value,
+                replace: customReplaceInput ? customReplaceInput.value : '',
+                match_case: matchCaseCheck ? matchCaseCheck.checked : false,
+                is_regex: useRegexCheck ? useRegexCheck.checked : false
+            };
+
+            if (editingRuleIndex !== null && editingRuleIndex < appliedRules.length) {
+                appliedRules[editingRuleIndex] = currentRule;
+                editingRuleIndex = null;
+            } else {
+                appliedRules.push(currentRule);
+            }
+
+            customFindInput.value = '';
+            if (customReplaceInput) customReplaceInput.value = '';
+            renderAppliedRules();
         }
 
         if (appliedRules.length > 0) {

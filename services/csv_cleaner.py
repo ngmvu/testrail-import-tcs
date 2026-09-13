@@ -50,6 +50,9 @@ def clean_test_case_text(
     if not text.strip() and not rules:
         return ""
 
+    # Normalize line breaks to standard LF (\n)
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
+
     if strip_invisible_chars:
         # Strip zero-width space \u200b, zero-width no-break space \ufeff, soft hyphen \u00ad
         text = re.sub(r'[\u200b\ufeff\u00ad]', '', text)
@@ -70,15 +73,18 @@ def clean_test_case_text(
 
     # Step 0: Custom Find & Replace (supports chained sequential rules)
     for rule in rules:
-        c_find = rule.get('find')
+        c_find = str(rule.get('find', '')).replace('\r\n', '\n').replace('\r', '\n')
         if not c_find:
             continue
-        rep_val = rule.get('replace') if rule.get('replace') is not None else ""
+        rep_val = str(rule.get('replace')) if rule.get('replace') is not None else ""
+        rep_val = rep_val.replace('\r\n', '\n').replace('\r', '\n')
+        
         m_case = bool(rule.get('match_case', False))
         i_regex = bool(rule.get('is_regex', False))
 
         if normalize_smart_quotes:
             c_find = c_find.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
+            rep_val = rep_val.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
 
         if i_regex:
             try:
