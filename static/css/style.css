@@ -690,6 +690,7 @@ body.app-body {
 .excel-grid-container {
     border: 1px solid #334155 !important;
     background-color: #0f172a !important;
+    transition: max-height 0.3s ease;
 }
 
 .excel-table {
@@ -699,16 +700,46 @@ body.app-body {
 }
 
 .excel-cell {
-    padding: 0.75rem 1rem !important;
+    padding: 0.6rem 0.85rem !important;
     vertical-align: top !important;
-    min-width: 220px !important;
+    min-width: 200px !important;
     font-size: 0.8125rem !important;
-    line-height: 1.55 !important;
+    line-height: 1.45 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     position: relative;
     cursor: pointer;
     transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.excel-cell-content,
+.excel-cell-text {
+    max-height: none !important;
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+}
+
+/* FIT SCREEN HEIGHT MODE */
+.table-container.fit-screen-mode {
+    max-height: calc(100vh - 220px) !important;
+    min-height: 480px !important;
+}
+
+/* Column Title - Always full height, no truncation */
+.excel-cell-title,
+.excel-cell-title .excel-cell-content {
+    max-height: none !important;
+    overflow: visible !important;
+    min-width: 260px !important;
+    max-width: 480px !important;
+    font-weight: 600;
+}
+
+/* Short columns (#, Type, Priority, Status, etc.) optimization */
+.excel-cell-short {
+    min-width: 90px !important;
+    max-width: 160px !important;
 }
 
 .excel-cell:hover:not(.is-editing) {

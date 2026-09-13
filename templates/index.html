@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=full_text_v2">
 </head>
 
 <body class="app-body">
@@ -315,20 +315,16 @@
                     <!-- Preview Controls Toolbar -->
                     <div class="preview-toolbar">
                         <div class="tab-group">
-                            <button type="button" class="tab-btn active" data-view="grid">📊 Excel Full Grid
-                                View</button>
-                            <button type="button" class="tab-btn" data-view="changes">Edited / Changed Cells (<span
-                                    id="changesCountBadge">0</span>)</button>
-                            <button type="button" class="tab-btn" data-view="unchanged">Unedited Cells (<span
-                                    id="unchangedCountBadge">0</span>)</button>
+                            <button type="button" class="tab-btn active" data-view="grid">📊 Excel Full Grid View</button>
+                            <button type="button" class="tab-btn" data-view="changes">Edited / Changed Cells (<span id="changesCountBadge">0</span>)</button>
+                            <button type="button" class="tab-btn" data-view="unchanged">Unedited Cells (<span id="unchangedCountBadge">0</span>)</button>
                         </div>
                         <div class="toolbar-actions">
-                            <div class="drag-hint">
-                                🖐️ <strong>Excel Grid Workbench:</strong> Double-click cell to edit &bull; Click &amp; drag to scroll
-                            </div>
+                            <button type="button" id="gridFitScreenBtn" class="btn btn-secondary" title="Phóng to bảng vừa chiều cao màn hình" style="padding: 0.4rem 0.75rem; font-size: 0.8125rem; background: rgba(99, 102, 241, 0.12); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 600;">
+                                <span>🖥️ Tối Ưu Màn Hình</span>
+                            </button>
                             <div class="search-box">
-                                <input type="text" id="searchInput" placeholder="Search in Excel grid..."
-                                    class="input-search">
+                                <input type="text" id="searchInput" placeholder="Search in Excel grid..." class="input-search">
                             </div>
                         </div>
                     </div>
@@ -907,7 +903,7 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=full_text_v2"></script>
 </body>
 
 </html>

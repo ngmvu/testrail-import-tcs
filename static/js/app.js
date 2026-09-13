@@ -689,6 +689,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let badgeHtml = cellObj.changed ? `<span class="excel-edited-badge" title="Original text: ${escapeHtml(cellObj.original)}">✏️ EDITED</span>` : '';
         let editBtnHtml = `<button type="button" class="excel-cell-edit-trigger" title="Edit Cell">✏️ Edit</button>`;
         
+        let colName = String(td._col || '').trim().toLowerCase();
+        if (colName === 'title') {
+            td.classList.add('excel-cell-title');
+        }
+
         let cellTextHtml = '';
         if (cellObj.changed) {
             const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
@@ -873,7 +878,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let headersHtml = `<th>Row #</th>`;
         columns.forEach((col) => {
-            headersHtml += `<th>${escapeHtml(col)}</th>`;
+            const colLower = col.trim().toLowerCase();
+            let styleAttr = '';
+            if (colLower === 'title') {
+                styleAttr = 'class="excel-cell-title" style="min-width: 260px; max-width: 480px;"';
+            } else if (['#', 'id', 'type', 'priority', 'status'].includes(colLower)) {
+                styleAttr = 'class="excel-cell-short" style="min-width: 90px; max-width: 160px;"';
+            }
+            headersHtml += `<th ${styleAttr}>${escapeHtml(col)}</th>`;
         });
         headersHtml += `<th style="text-align: center; min-width: 120px;">Action</th>`;
 
@@ -910,7 +922,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 td._rowItem = rowItem;
                 td._col = col;
 
-                td.className = cellObj.changed ? 'excel-cell excel-cell-changed' : 'excel-cell';
+                const colLower = col.trim().toLowerCase();
+                let extraClasses = '';
+                if (colLower === 'title') extraClasses = ' excel-cell-title';
+                else if (['#', 'id', 'type', 'priority', 'status'].includes(colLower)) extraClasses = ' excel-cell-short';
+
+                td.className = (cellObj.changed ? 'excel-cell excel-cell-changed' : 'excel-cell') + extraClasses;
                 updateCellDOMContent(td, cellObj);
 
                 td.addEventListener('dblclick', (e) => {
@@ -1183,6 +1200,56 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetView === 'unchanged' && unchangedView) unchangedView.classList.remove('hidden');
         });
     });
+
+    // Grid View Mode Toggles (Compact Rows vs Full Text Rows vs Fit Screen Height)
+    const gridCompactBtn = document.getElementById('gridCompactBtn');
+    const gridExpandedBtn = document.getElementById('gridExpandedBtn');
+    const gridFitScreenBtn = document.getElementById('gridFitScreenBtn');
+
+    if (gridCompactBtn && gridExpandedBtn && gridView) {
+        gridCompactBtn.addEventListener('click', () => {
+            gridView.classList.add('compact-mode');
+            gridCompactBtn.classList.add('active');
+            gridCompactBtn.style.background = 'var(--primary)';
+            gridCompactBtn.style.color = 'white';
+
+            gridExpandedBtn.classList.remove('active');
+            gridExpandedBtn.style.background = 'transparent';
+            gridExpandedBtn.style.color = 'var(--text-secondary)';
+        });
+
+        gridExpandedBtn.addEventListener('click', () => {
+            gridView.classList.remove('compact-mode');
+            const expandedCells = gridView.querySelectorAll('.excel-cell.is-expanded');
+            expandedCells.forEach(c => c.classList.remove('is-expanded'));
+
+            gridExpandedBtn.classList.add('active');
+            gridExpandedBtn.style.background = 'var(--primary)';
+            gridExpandedBtn.style.color = 'white';
+
+            gridCompactBtn.classList.remove('active');
+            gridCompactBtn.style.background = 'transparent';
+            gridCompactBtn.style.color = 'var(--text-secondary)';
+        });
+    }
+
+    if (gridFitScreenBtn && gridView) {
+        gridFitScreenBtn.addEventListener('click', () => {
+            const isFit = gridView.classList.toggle('fit-screen-mode');
+            if (changesView) changesView.classList.toggle('fit-screen-mode', isFit);
+            if (unchangedView) unchangedView.classList.toggle('fit-screen-mode', isFit);
+
+            if (isFit) {
+                gridFitScreenBtn.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+                gridFitScreenBtn.style.color = 'white';
+                gridFitScreenBtn.style.boxShadow = '0 0 12px var(--primary-glow)';
+            } else {
+                gridFitScreenBtn.style.background = 'rgba(99, 102, 241, 0.12)';
+                gridFitScreenBtn.style.color = '#a5b4fc';
+                gridFitScreenBtn.style.boxShadow = 'none';
+            }
+        });
+    }
 
     // Download Button
     downloadBtn.addEventListener('click', () => {
