@@ -350,11 +350,12 @@ def process_csv_content(
     custom_replace: Optional[str] = None,
     is_regex: bool = False,
     match_case: bool = False,
-    find_replace_rules: Optional[List[Dict[str, Any]]] = None
+    find_replace_rules: Optional[List[Dict[str, Any]]] = None,
+    manual_edits: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
     """
     Reads CSV content from input_stream, cleans every cell, writes clean CSV to output_stream,
-    and returns a summary dictionary of changes and stats.
+    preserves manual_edits, and returns a summary dictionary of changes and stats.
     """
     # Detect BOM or UTF-8
     raw_content = input_stream.read()
@@ -412,9 +413,17 @@ def process_csv_content(
             for col_idx, original_val in enumerate(row):
                 cells_checked += 1
                 col_name = header[col_idx] if col_idx < len(header) else f"Column_{col_idx+1}"
+                cell_key = f"{row_idx}_{col_name}"
+
+                is_manually_edited = False
+                if manual_edits and cell_key in manual_edits:
+                    val_to_clean = manual_edits[cell_key]
+                    is_manually_edited = True
+                else:
+                    val_to_clean = original_val
 
                 cleaned_val = clean_test_case_text(
-                    original_val,
+                    val_to_clean,
                     decode_html_entities=decode_html_entities,
                     bullet_format=bullet_format,
                     normalize_smart_quotes=normalize_smart_quotes,
@@ -433,7 +442,7 @@ def process_csv_content(
                 if cell_warns:
                     warnings.extend(cell_warns)
                 
-                is_changed = (original_val != cleaned_val)
+                is_changed = is_manually_edited or (original_val != cleaned_val)
                 if is_changed:
                     cells_changed += 1
                     changes.append({
@@ -490,7 +499,8 @@ def clean_csv_file(
     custom_replace: Optional[str] = None,
     is_regex: bool = False,
     match_case: bool = False,
-    find_replace_rules: Optional[List[Dict[str, Any]]] = None
+    find_replace_rules: Optional[List[Dict[str, Any]]] = None,
+    manual_edits: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
     """
     Cleans a CSV file at input_filepath and writes to output_filepath.
@@ -510,7 +520,8 @@ def clean_csv_file(
             custom_replace=custom_replace,
             is_regex=is_regex,
             match_case=match_case,
-            find_replace_rules=find_replace_rules
+            find_replace_rules=find_replace_rules,
+            manual_edits=manual_edits
         )
         
     output_path = Path(output_filepath)

@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFile = null;
     let currentFileId = null;
     let processedData = null;
+    let manualEdits = {};
 
     // File Selection & Drag-and-Drop
     dropzone.addEventListener('click', (e) => {
@@ -97,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         hideAlert();
         currentFile = file;
+        manualEdits = {};
         fileName.textContent = file.name;
         fileInfo.classList.remove('hidden');
         cleanBtn.disabled = false;
@@ -107,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetFileSelection() {
         currentFile = null;
+        manualEdits = {};
         fileInput.value = '';
         fileInfo.classList.add('hidden');
         cleanBtn.disabled = true;
@@ -370,6 +373,10 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('find_replace_rules', JSON.stringify(appliedRules));
         }
 
+        if (Object.keys(manualEdits).length > 0) {
+            formData.append('manual_edits', JSON.stringify(manualEdits));
+        }
+
         try {
             const response = await fetch('/clean', {
                 method: 'POST',
@@ -422,31 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderUnchangedTable(stats.rows_preview, stats.columns);
         renderGridView(stats.columns, stats.rows_preview);
 
-        // Render Warnings Banner if any unclosed quotes detected
-        const csvWarningsCard = document.getElementById('csvWarningsCard');
-        const warningsCountText = document.getElementById('warningsCountText');
-        const warningsListContainer = document.getElementById('warningsListContainer');
-
-        if (csvWarningsCard && warningsListContainer) {
-            if (stats.warnings && stats.warnings.length > 0) {
-                csvWarningsCard.classList.remove('hidden');
-                if (warningsCountText) warningsCountText.textContent = stats.warnings.length.toLocaleString();
-                warningsListContainer.innerHTML = '';
-
-                stats.warnings.forEach(w => {
-                    const item = document.createElement('div');
-                    item.style.cssText = 'background: rgba(0,0,0,0.25); border-left: 3px solid #f59e0b; padding: 0.35rem 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem;';
-                    const warnMsg = w.message ? (w.message.includes(']: ') ? w.message.split(']: ')[1] : w.message) : 'Unclosed or mismatched symbol detected.';
-                    item.innerHTML = `
-                        <div><strong style="color: #fbbf24;">Row #${w.row}</strong>, Column <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: ${escapeHtml(warnMsg)}</div>
-                        <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">"<em>${escapeHtml(w.snippet)}</em>"</div>
-                    `;
-                    warningsListContainer.appendChild(item);
-                });
-            } else {
-                csvWarningsCard.classList.add('hidden');
-            }
-        }
+        updateWarningsBanner(stats.warnings);
 
         if (stats.columns) {
             renderColumnMapping(stats.columns, 'trColumnMappingContainer');
@@ -455,6 +438,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultsSection.classList.remove('hidden');
         resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateWarningsBanner(warnings) {
+        const csvWarningsCard = document.getElementById('csvWarningsCard');
+        const warningsCountText = document.getElementById('warningsCountText');
+        const warningsListContainer = document.getElementById('warningsListContainer');
+
+        if (!csvWarningsCard || !warningsListContainer) return;
+
+        if (warnings && warnings.length > 0) {
+            csvWarningsCard.classList.remove('hidden');
+            if (warningsCountText) warningsCountText.textContent = warnings.length.toLocaleString();
+            warningsListContainer.innerHTML = '';
+
+            warnings.forEach(w => {
+                const item = document.createElement('div');
+                item.style.cssText = 'background: rgba(0,0,0,0.25); border-left: 3px solid #f59e0b; padding: 0.35rem 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem;';
+                const warnMsg = w.message ? (w.message.includes(']: ') ? w.message.split(']: ')[1] : w.message) : 'Unclosed or mismatched symbol detected.';
+                item.innerHTML = `
+                    <div><strong style="color: #fbbf24;">Row #${w.row}</strong>, Column <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: ${escapeHtml(warnMsg)}</div>
+                    <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">"<em>${escapeHtml(w.snippet)}</em>"</div>
+                `;
+                warningsListContainer.appendChild(item);
+            });
+        } else {
+            csvWarningsCard.classList.add('hidden');
+        }
     }
 
     function renderUnchangedTable(rows, columns) {
@@ -675,6 +685,186 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('\n');
     }
 
+    function updateCellDOMContent(td, cellObj) {
+        let badgeHtml = cellObj.changed ? `<span class="excel-edited-badge" title="Original text: ${escapeHtml(cellObj.original)}">✏️ EDITED</span>` : '';
+        let editBtnHtml = `<button type="button" class="excel-cell-edit-trigger" title="Edit Cell">✏️ Edit</button>`;
+        
+        let cellTextHtml = '';
+        if (cellObj.changed) {
+            const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
+            cellTextHtml = diff.cleanedHtml;
+        } else {
+            cellTextHtml = formatDiffText(cellObj.cleaned);
+        }
+
+        td.innerHTML = `
+            ${editBtnHtml}
+            <div class="excel-cell-content">
+                ${badgeHtml}
+                <div class="excel-cell-text">${cellTextHtml}</div>
+            </div>
+        `;
+
+        const editBtn = td.querySelector('.excel-cell-edit-trigger');
+        if (editBtn) {
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                startEditingCell(td, td._rowItem, td._col);
+            });
+        }
+    }
+
+    function startEditingCell(td, rowItem, col) {
+        if (td.classList.contains('is-editing')) return;
+        td.classList.add('is-editing');
+
+        const cellObj = rowItem.data[col] || { original: '', cleaned: '', changed: false };
+        const currentVal = cellObj.cleaned !== undefined ? cellObj.cleaned : '';
+        const origContentHtml = td.innerHTML;
+
+        td.innerHTML = `
+            <div class="excel-inline-editor-wrapper">
+                <textarea class="excel-inline-editor">${escapeHtml(currentVal)}</textarea>
+                <div class="excel-editor-actions">
+                    <span class="excel-editor-hint">Ctrl+Enter to save • Esc to cancel</span>
+                    <div class="excel-editor-btns">
+                        <button type="button" class="btn-cell-cancel">Cancel</button>
+                        <button type="button" class="btn-cell-save">✓ Save</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const textarea = td.querySelector('.excel-inline-editor');
+        const saveBtn = td.querySelector('.btn-cell-save');
+        const cancelBtn = td.querySelector('.btn-cell-cancel');
+
+        textarea.focus();
+        try {
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        } catch (e) {}
+
+        async function saveEdit() {
+            const newVal = textarea.value;
+            if (newVal === currentVal) {
+                cancelEdit();
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+
+            try {
+                const resp = await fetch('/update-cell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_id: currentFileId,
+                        row: rowItem.row,
+                        column: col,
+                        value: newVal
+                    })
+                });
+
+                const resData = await resp.json();
+                if (!resp.ok || resData.error) {
+                    throw new Error(resData.error || 'Failed to update cell.');
+                }
+
+                const wasChanged = cellObj.changed;
+                if (!cellObj.original && cellObj.original !== '') {
+                    cellObj.original = currentVal;
+                }
+                cellObj.cleaned = newVal;
+                cellObj.changed = true;
+                manualEdits[`${rowItem.row}_${col}`] = newVal;
+
+                td.classList.remove('is-editing');
+                td.classList.add('excel-cell-changed');
+
+                const tr = td.closest('tr');
+                if (tr) tr.classList.add('excel-row-has-changed');
+
+                updateCellDOMContent(td, cellObj);
+
+                if (processedData) {
+                    if (!wasChanged) {
+                        processedData.cells_changed = (processedData.cells_changed || 0) + 1;
+                        if (statChanged) statChanged.textContent = processedData.cells_changed.toLocaleString();
+                    }
+
+                    const existingChangeIdx = processedData.changes.findIndex(c => c.row === rowItem.row && c.column === col);
+                    if (existingChangeIdx >= 0) {
+                        processedData.changes[existingChangeIdx].cleaned = newVal;
+                    } else {
+                        processedData.changes.push({
+                            row: rowItem.row,
+                            column: col,
+                            original: cellObj.original || '',
+                            cleaned: newVal
+                        });
+                    }
+                    changesCountBadge.textContent = processedData.changes.length.toLocaleString();
+
+                    if (resData.cell_warnings) {
+                        processedData.warnings = (processedData.warnings || []).filter(w => !(w.row === rowItem.row && w.column === col));
+                        if (resData.cell_warnings.length > 0) {
+                            processedData.warnings.push(...resData.cell_warnings);
+                        }
+                        updateWarningsBanner(processedData.warnings);
+                    }
+
+                    renderChangesTable(processedData.changes);
+                    renderUnchangedTable(processedData.rows_preview, processedData.columns);
+                }
+
+            } catch (err) {
+                showAlert(`Cell Save Error: ${err.message}`, 'danger');
+                td.classList.remove('is-editing');
+                td.innerHTML = origContentHtml;
+            }
+        }
+
+        function cancelEdit() {
+            td.classList.remove('is-editing');
+            td.innerHTML = origContentHtml;
+            const editBtn = td.querySelector('.excel-cell-edit-trigger');
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    startEditingCell(td, rowItem, col);
+                });
+            }
+        }
+
+        saveBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            saveEdit();
+        });
+
+        cancelBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cancelEdit();
+        });
+
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+            }
+        });
+
+        const wrapper = td.querySelector('.excel-inline-editor-wrapper');
+        if (wrapper) {
+            wrapper.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+    }
+
     function renderGridView(columns, rows) {
         if (!gridTableHeader || !gridTableBody) return;
 
@@ -710,49 +900,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 tr.classList.add('excel-row-has-changed');
             }
 
-            let cellsHtml = `<td><strong>#${rowItem.row}</strong> ${hasAnyChange ? '<span style="color:#34d399; font-size: 0.75rem;" title="Row contains formatted/edited cells">✨</span>' : ''}</td>`;
+            const rowHeaderTd = document.createElement('td');
+            rowHeaderTd.innerHTML = `<strong>#${rowItem.row}</strong> ${hasAnyChange ? '<span style="color:#34d399; font-size: 0.75rem;" title="Row contains formatted/edited cells">✨</span>' : ''}`;
+            tr.appendChild(rowHeaderTd);
 
             columns.forEach(col => {
                 const cellObj = rowItem.data[col] || { cleaned: '', original: '', changed: false };
-                const isChanged = cellObj.changed;
-                const cellClass = isChanged ? 'excel-cell excel-cell-changed' : 'excel-cell';
+                const td = document.createElement('td');
+                td._rowItem = rowItem;
+                td._col = col;
 
-                let badgeHtml = '';
-                let cellTextHtml = formatDiffText(cellObj.cleaned);
+                td.className = cellObj.changed ? 'excel-cell excel-cell-changed' : 'excel-cell';
+                updateCellDOMContent(td, cellObj);
 
-                if (isChanged) {
-                    badgeHtml = `<span class="excel-edited-badge" title="Original text: ${escapeHtml(cellObj.original)}">✏️ EDITED</span>`;
-                    const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
-                    cellTextHtml = diff.cleanedHtml;
-                }
+                td.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    startEditingCell(td, rowItem, col);
+                });
 
-                cellsHtml += `
-                    <td class="${cellClass}">
-                        <div class="excel-cell-content">
-                            ${badgeHtml}
-                            <div class="excel-cell-text">${cellTextHtml}</div>
-                        </div>
-                    </td>
-                `;
+                tr.appendChild(td);
             });
 
-            cellsHtml += `
-                <td class="excel-action-cell">
-                    <button type="button" class="btn-inspect-row">🔍 View Detail</button>
-                </td>
-            `;
-
-            tr.innerHTML = cellsHtml;
-
-            const btnInspect = tr.querySelector('.btn-inspect-row');
+            const actionTd = document.createElement('td');
+            actionTd.className = 'excel-action-cell';
+            actionTd.innerHTML = `<button type="button" class="btn-inspect-row">🔍 View Detail</button>`;
+            const btnInspect = actionTd.querySelector('.btn-inspect-row');
             if (btnInspect) {
                 btnInspect.addEventListener('click', (e) => {
                     e.stopPropagation();
                     openRowInspector(rowItem);
                 });
             }
+            tr.appendChild(actionTd);
 
-            tr.addEventListener('click', () => openRowInspector(rowItem));
             gridTableBody.appendChild(tr);
         });
     }
@@ -814,32 +994,146 @@ document.addEventListener('DOMContentLoaded', () => {
         processedData.columns.forEach(col => {
             const cellObj = rowItem.data[col] || { original: '', cleaned: '', changed: false };
             const card = document.createElement('div');
-            card.style.cssText = 'background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;';
+            card.style.cssText = 'background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem; position: relative;';
 
-            let diffHtml = '';
-            if (cellObj.changed) {
-                const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
-                diffHtml = `
-                    <div style="font-size: 0.75rem; color: var(--danger); font-weight: 600;">Original:</div>
-                    <div class="text-box original" style="font-size: 0.8125rem;">${diff.originalHtml}</div>
-                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 0.25rem;">Cleaned:</div>
-                    <div class="text-box cleaned" style="font-size: 0.8125rem;">${diff.cleanedHtml}</div>
-                `;
-            } else {
-                diffHtml = `<div class="text-box" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.8125rem;">${escapeHtml(cellObj.cleaned || '(empty)')}</div>`;
-            }
-
-            card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="badge" style="font-size: 0.8125rem; background: var(--primary-light); color: #a5b4fc;">${escapeHtml(col)}</span>
-                    ${cellObj.changed ? '<span class="change-tag bullet-tag">Formatted</span>' : ''}
-                </div>
-                ${diffHtml}
-            `;
+            renderInspectorCardContent(card, rowItem, col, cellObj);
             rowDetailModalBody.appendChild(card);
         });
 
         rowDetailModal.classList.remove('hidden');
+    }
+
+    function renderInspectorCardContent(card, rowItem, col, cellObj) {
+        let diffHtml = '';
+        if (cellObj.changed) {
+            const diff = computeInlineDiff(cellObj.original, cellObj.cleaned);
+            diffHtml = `
+                <div style="font-size: 0.75rem; color: var(--danger); font-weight: 600;">Original:</div>
+                <div class="text-box original" style="font-size: 0.8125rem;">${diff.originalHtml}</div>
+                <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 0.25rem;">Cleaned / Current:</div>
+                <div class="text-box cleaned" style="font-size: 0.8125rem;">${diff.cleanedHtml}</div>
+            `;
+        } else {
+            diffHtml = `<div class="text-box" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.8125rem;">${escapeHtml(cellObj.cleaned || '(empty)')}</div>`;
+        }
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge" style="font-size: 0.8125rem; background: var(--primary-light); color: #a5b4fc;">${escapeHtml(col)}</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    ${cellObj.changed ? '<span class="change-tag bullet-tag">Formatted/Edited</span>' : ''}
+                    <button type="button" class="btn-edit-inspector-field" style="background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.4); padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">✏️ Edit Field</button>
+                </div>
+            </div>
+            ${diffHtml}
+        `;
+
+        const editBtn = card.querySelector('.btn-edit-inspector-field');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                startEditingInspectorField(card, rowItem, col, cellObj);
+            });
+        }
+    }
+
+    function startEditingInspectorField(card, rowItem, col, cellObj) {
+        const currentVal = cellObj.cleaned !== undefined ? cellObj.cleaned : '';
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge" style="font-size: 0.8125rem; background: var(--primary-light); color: #a5b4fc;">${escapeHtml(col)}</span>
+                <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">Editing Field...</span>
+            </div>
+            <textarea class="form-control inspector-field-textarea" style="min-height: 110px; font-family: var(--font-mono); font-size: 0.8125rem; line-height: 1.5; resize: vertical;">${escapeHtml(currentVal)}</textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.35rem;">
+                <button type="button" class="btn btn-cancel-inspector-edit" style="background: rgba(255,255,255,0.08); color: var(--text-secondary); padding: 0.3rem 0.75rem; font-size: 0.8rem; border-radius: 4px;">Cancel</button>
+                <button type="button" class="btn btn-save-inspector-edit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.3rem 0.9rem; font-size: 0.8rem; font-weight: 600; border-radius: 4px;">✓ Save Field</button>
+            </div>
+        `;
+
+        const textarea = card.querySelector('.inspector-field-textarea');
+        const saveBtn = card.querySelector('.btn-save-inspector-edit');
+        const cancelBtn = card.querySelector('.btn-cancel-inspector-edit');
+
+        textarea.focus();
+
+        cancelBtn.addEventListener('click', () => {
+            renderInspectorCardContent(card, rowItem, col, cellObj);
+        });
+
+        saveBtn.addEventListener('click', async () => {
+            const newVal = textarea.value;
+            if (newVal === currentVal) {
+                renderInspectorCardContent(card, rowItem, col, cellObj);
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+
+            try {
+                const resp = await fetch('/update-cell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_id: currentFileId,
+                        row: rowItem.row,
+                        column: col,
+                        value: newVal
+                    })
+                });
+
+                const resData = await resp.json();
+                if (!resp.ok || resData.error) {
+                    throw new Error(resData.error || 'Failed to save field edit.');
+                }
+
+                const wasChanged = cellObj.changed;
+                if (!cellObj.original && cellObj.original !== '') {
+                    cellObj.original = currentVal;
+                }
+                cellObj.cleaned = newVal;
+                cellObj.changed = true;
+                manualEdits[`${rowItem.row}_${col}`] = newVal;
+
+                renderInspectorCardContent(card, rowItem, col, cellObj);
+
+                if (processedData) {
+                    if (!wasChanged) {
+                        processedData.cells_changed = (processedData.cells_changed || 0) + 1;
+                        if (statChanged) statChanged.textContent = processedData.cells_changed.toLocaleString();
+                    }
+
+                    const existingChangeIdx = processedData.changes.findIndex(c => c.row === rowItem.row && c.column === col);
+                    if (existingChangeIdx >= 0) {
+                        processedData.changes[existingChangeIdx].cleaned = newVal;
+                    } else {
+                        processedData.changes.push({
+                            row: rowItem.row,
+                            column: col,
+                            original: cellObj.original || '',
+                            cleaned: newVal
+                        });
+                    }
+                    changesCountBadge.textContent = processedData.changes.length.toLocaleString();
+
+                    if (resData.cell_warnings) {
+                        processedData.warnings = (processedData.warnings || []).filter(w => !(w.row === rowItem.row && w.column === col));
+                        if (resData.cell_warnings.length > 0) {
+                            processedData.warnings.push(...resData.cell_warnings);
+                        }
+                        updateWarningsBanner(processedData.warnings);
+                    }
+
+                    renderChangesTable(processedData.changes);
+                    renderUnchangedTable(processedData.rows_preview, processedData.columns);
+                    renderGridView(processedData.columns, processedData.rows_preview);
+                }
+            } catch (err) {
+                showAlert(`Field Edit Error: ${err.message}`, 'danger');
+                renderInspectorCardContent(card, rowItem, col, cellObj);
+            }
+        });
     }
 
     function closeRowInspector() {

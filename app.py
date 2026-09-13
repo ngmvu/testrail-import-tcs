@@ -88,6 +88,12 @@ def clean_csv():
     except Exception:
         find_replace_rules = []
 
+    manual_edits_json = request.form.get('manual_edits', '{}')
+    try:
+        manual_edits = json.loads(manual_edits_json)
+    except Exception:
+        manual_edits = {}
+
     try:
         stats = clean_csv_file(
             str(input_path),
@@ -101,7 +107,8 @@ def clean_csv():
             custom_replace=custom_replace,
             is_regex=is_regex,
             match_case=match_case,
-            find_replace_rules=find_replace_rules
+            find_replace_rules=find_replace_rules,
+            manual_edits=manual_edits
         )
         DOWNLOAD_CACHE[file_id] = {
             "output_path": str(output_path),
@@ -132,6 +139,76 @@ def download_file(file_id):
         download_name=file_info['download_name'],
         mimetype='text/csv'
     )
+
+@app.route('/update-cell', methods=['POST'])
+def update_cell():
+    data = request.get_json(silent=True) or request.form
+    file_id = data.get('file_id')
+    row_num = data.get('row')
+    col_name = data.get('column')
+    new_value = data.get('value', '')
+
+    if not file_id or file_id not in DOWNLOAD_CACHE:
+        return jsonify({"error": "Invalid or expired file session."}), 400
+
+    output_path = Path(DOWNLOAD_CACHE[file_id]['output_path'])
+    if not output_path.exists():
+        return jsonify({"error": "Cleaned CSV file no longer exists."}), 404
+
+    try:
+        row_idx = int(row_num)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid row index."}), 400
+
+    if not col_name:
+        return jsonify({"error": "Column name is required."}), 400
+
+    import csv
+    from services.csv_cleaner import detect_unbalanced_symbols
+
+    rows = []
+    try:
+        with open(output_path, 'r', encoding='utf-8-sig', newline='') as f:
+            reader = csv.reader(f)
+            for r in reader:
+                rows.append(r)
+    except Exception:
+        return jsonify({"error": "Failed to read CSV file."}), 500
+
+    if not rows:
+        return jsonify({"error": "CSV file is empty."}), 400
+
+    header = rows[0]
+    if col_name not in header:
+        return jsonify({"error": f"Column '{col_name}' not found in CSV."}), 400
+
+    col_idx = header.index(col_name)
+
+    if row_idx < 1 or row_idx >= len(rows):
+        return jsonify({"error": f"Row #{row_idx} out of range."}), 400
+
+    while len(rows[row_idx]) <= col_idx:
+        rows[row_idx].append("")
+
+    rows[row_idx][col_idx] = new_value
+
+    try:
+        with open(output_path, 'w', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerows(rows)
+    except Exception:
+        return jsonify({"error": "Failed to update CSV file."}), 500
+
+    cell_warns = detect_unbalanced_symbols(new_value, row_idx, col_name)
+
+    return jsonify({
+        "success": True,
+        "row": row_idx,
+        "column": col_name,
+        "value": new_value,
+        "cell_warnings": cell_warns
+    })
+
 
 @app.route('/get-testrail-sections', methods=['POST'])
 def get_testrail_sections():
