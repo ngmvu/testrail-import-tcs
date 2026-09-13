@@ -4,17 +4,6 @@ A specialized Python Flask web application designed to clean and normalize CSV t
 
 ---
 
-## Key Features
-
-- **Bullet Point Normalization**: Converts indented bullets (`  - `, `   - `, `    - `) into standardized `- ` bullets without deleting `-` or corrupting content.
-- **Line Break & Indentation Cleanup**: Trims unnecessary trailing spaces and collapses excessive blank lines while preserving intentional test case paragraph breaks.
-- **XML / HTML Tag Preservation**: Keeps `<roomName>`, `<model>`, `<portableName>`, and HTML entities like `&lt;` untouched.
-- **Quotation Mark & Special Character Safety**: Preserves quotation marks (`"Select"`, `"I don't see my product"`), punctuation, commas inside CSV cells, and UTF-8 / Vietnamese characters.
-- **Interactive UI Preview**: Displays a visual diff table highlighting changed cells along with statistics (`Total Rows`, `Cells Checked`, `Cells Changed`).
-- **CSV Download**: Export cleaned CSV ready for direct import into TestRail without column or row ordering changes.
-
----
-
 ## Installation & Setup Instructions
 
 ### 1. Create Virtual Environment
