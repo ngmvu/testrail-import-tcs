@@ -50,14 +50,6 @@
                     </svg>
                     <span>Formatter Studio</span>
                 </button>
-                <button class="nav-item" data-tab="tab-testrail">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
-                        <line x1="16" y1="5" x2="22" y2="5"></line>
-                        <line x1="19" y1="2" x2="19" y2="8"></line>
-                    </svg>
-                    <span>Direct TestRail Sync</span>
-                </button>
                 <button class="nav-item" data-tab="tab-guide">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -68,10 +60,6 @@
                 </button>
             </nav>
 
-            <div class="nav-status">
-                <span class="status-indicator online"></span>
-                <span class="status-text">TestRail API Ready</span>
-            </div>
         </div>
     </header>
 
@@ -242,19 +230,9 @@
                     <div class="card-header">
                         <div>
                             <h2>Formatted Results &amp; Live Grid Workbench</h2>
-                            <p class="subtitle">Review cleaned formatting before downloading clean CSV or syncing
-                                directly to TestRail.</p>
+                            <p class="subtitle">Review cleaned formatting before downloading the clean CSV.</p>
                         </div>
                         <div class="action-buttons">
-                            <button id="openTestRailModalBtn" class="btn btn-primary btn-glow">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
-                                    <line x1="16" y1="5" x2="22" y2="5"></line>
-                                    <line x1="19" y1="2" x2="19" y2="8"></line>
-                                </svg>
-                                <span>Push to TestRail API</span>
-                            </button>
                             <button id="downloadBtn" class="btn btn-success">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -373,116 +351,6 @@
                             </tbody>
                         </table>
                     </div>
-                </section>
-            </div>
-
-            <!-- TAB 2: DIRECT TESTRAIL SYNC PLATFORM -->
-            <div id="tab-testrail" class="tab-page hidden">
-                <section class="card">
-                    <div class="card-header">
-                        <div>
-                            <h2>🚀 Direct TestRail Sync Manager</h2>
-                            <p class="subtitle">Connect directly to TestRail REST API v2 to automatically push test
-                                cases into your designated Section &amp; Sub-Section hierarchy.</p>
-                        </div>
-                        <span class="badge online">REST API v2 Ready</span>
-                    </div>
-
-                    <!-- Quick Tutorial Steps for Direct Sync -->
-                    <div class="guide-card"
-                        style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.25);">
-                        <div class="guide-header">
-                            <span class="guide-icon">💡</span>
-                            <h3 style="color: #a5b4fc;">4-Step Direct TestRail Synchronization Workflow:</h3>
-                        </div>
-                        <ol class="guide-list" style="margin-left: 1.5rem; gap: 0.5rem;">
-                            <li><strong>Step 1:</strong> Upload your CSV file in the <strong>Formatter Studio</strong>
-                                tab to clean formatting and scan detected columns.</li>
-                            <li><strong>Step 2:</strong> Enter your TestRail credentials: <code>Instance URL</code>,
-                                <code>Email</code>, <code>API Key</code>, and <code>Project ID</code> below.
-                            </li>
-                            <li><strong>Step 3:</strong> Click <code style="color:#a7f3d0;">🔄 Fetch Section Tree</code>
-                                to load all existing destination sections from TestRail.</li>
-                            <li><strong>Step 4:</strong> Verify/customize field mapping for CSV columns (Title,
-                                Preconditions, Steps, Type, Priority...) and click <code
-                                    style="color:#818cf8;">🚀 Execute Push to TestRail API</code>.</li>
-                        </ol>
-                    </div>
-
-                    <form id="testRailTabForm">
-                        <div class="form-grid-layout" style="margin-top: 1rem;">
-                            <div class="form-group">
-                                <label for="tabTrUrl">TestRail Instance URL *</label>
-                                <input type="url" id="tabTrUrl" required placeholder="https://yourcompany.testrail.io"
-                                    class="form-control">
-                            </div>
-
-                            <div class="form-row-2col">
-                                <div class="form-group">
-                                    <label for="tabTrEmail">Email Address *</label>
-                                    <input type="email" id="tabTrEmail" required placeholder="qa@company.com"
-                                        class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="tabTrApiKey">API Key / Password *</label>
-                                    <input type="password" id="tabTrApiKey" required placeholder="••••••••••••••••"
-                                        class="form-control">
-                                </div>
-                            </div>
-
-                            <div class="form-row-2col">
-                                <div class="form-group">
-                                    <label for="tabTrProjectId">Project ID *</label>
-                                    <input type="number" id="tabTrProjectId" required placeholder="1"
-                                        class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="tabTrSuiteId">Suite ID (Optional - Leave empty for Single Suite)</label>
-                                    <input type="number" id="tabTrSuiteId" placeholder="e.g. 12" class="form-control">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <div class="flex-between">
-                                    <label for="tabTrSectionSelect">Target Section (Destination Folder on TestRail)
-                                        *</label>
-                                    <button type="button" id="tabFetchSectionsBtn" class="btn-text-link"
-                                        style="font-weight: 700;">
-                                        🔄 Fetch Section Tree from TestRail
-                                    </button>
-                                </div>
-                                <select id="tabTrSectionSelect" class="form-control select-modern">
-                                    <option value="">-- Root Level (Auto-create Sections from CSV) --</option>
-                                </select>
-                            </div>
-
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="tabRememberCreds" checked>
-                                <span>Remember TestRail credentials locally in browser storage</span>
-                            </label>
-
-                            <details open class="mapping-details-card">
-                                <summary class="mapping-summary">📋 Dynamic CSV Column to TestRail Field Mapper
-                                </summary>
-                                <p class="subtitle" style="font-size: 0.8125rem; margin: 0.5rem 0 1rem;">Detected CSV
-                                    columns are automatically mapped to corresponding TestRail fields:</p>
-                                <div id="tabColumnMappingContainer" class="mapping-container">
-                                    <p class="subtitle" style="font-size: 0.8125rem;">Please upload a CSV file in
-                                        Formatter Studio tab first to detect column schemas.</p>
-                                </div>
-                            </details>
-
-                            <div id="tabTrLogConsole" class="log-console hidden"></div>
-                            <div id="tabTrAlertBox" class="alert hidden"></div>
-
-                            <div class="flex-end" style="margin-top: 1rem;">
-                                <button type="submit" id="tabSubmitPushBtn" class="btn btn-primary btn-hero btn-glow">
-                                    <span class="btn-text">🚀 Execute Push to TestRail API</span>
-                                    <span class="spinner hidden"></span>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
                 </section>
             </div>
 
@@ -796,96 +664,6 @@
         </footer>
     </div>
 
-    <!-- TestRail API Push Modal (Quick Trigger from Formatter Studio) -->
-    <div id="testRailModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>Push Test Cases to TestRail API</h3>
-                <button type="button" id="closeModalBtn" class="btn-icon">&times;</button>
-            </div>
-            <form id="testRailForm">
-                <div class="modal-body">
-                    <p class="subtitle" style="margin-bottom: 1rem;">Auto-creates <strong>Section</strong> &amp;
-                        <strong>Sub-Section</strong> tree nodes from CSV and pushes test cases via TestRail API.
-                    </p>
-
-                    <div class="form-group">
-                        <label for="trUrl">TestRail Instance URL *</label>
-                        <input type="url" id="trUrl" required placeholder="https://yourcompany.testrail.io"
-                            class="form-control">
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div class="form-group">
-                            <label for="trEmail">Email *</label>
-                            <input type="email" id="trEmail" required placeholder="qa@company.com" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="trApiKey">API Key / Password *</label>
-                            <input type="password" id="trApiKey" required placeholder="••••••••••••••••"
-                                class="form-control">
-                        </div>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div class="form-group">
-                            <label for="trProjectId">Project ID *</label>
-                            <input type="number" id="trProjectId" required placeholder="1" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="trSuiteId">Suite ID (Optional)</label>
-                            <input type="number" id="trSuiteId" placeholder="Leave empty for single-suite"
-                                class="form-control">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                            <label for="trSectionSelect">Target Section *</label>
-                            <button type="button" id="fetchSectionsBtn" class="btn-text-link"
-                                style="font-size: 0.8125rem; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600;">
-                                🔄 Load Sections from TestRail
-                            </button>
-                        </div>
-                        <select id="trSectionSelect" class="form-control" style="cursor: pointer;">
-                            <option value="">-- Root Level (Auto-create Sections from CSV) --</option>
-                        </select>
-                    </div>
-
-                    <label class="checkbox-label"
-                        style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-secondary); cursor: pointer;">
-                        <input type="checkbox" id="rememberCreds" checked style="accent-color: var(--primary);">
-                        <span>Remember credentials locally in browser</span>
-                    </label>
-
-                    <details id="trMappingDetails" open
-                        style="margin-top: 0.5rem; background: rgba(255,255,255,0.03); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                        <summary
-                            style="cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--primary); outline: none;">
-                            📋 CSV Column &amp; TestRail Field Mapping</summary>
-                        <p class="subtitle" style="font-size: 0.75rem; margin-top: 0.25rem; margin-bottom: 0.75rem;">
-                            Detected CSV columns automatically mapped to TestRail fields:</p>
-                        <div id="trColumnMappingContainer"
-                            style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto; padding-right: 0.25rem;">
-                            <!-- Populated dynamically by app.js -->
-                        </div>
-                    </details>
-
-                    <div id="trLogConsole" class="log-console hidden"></div>
-                    <div id="trAlertBox" class="alert hidden"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="cancelModalBtn" class="btn"
-                        style="background: rgba(255,255,255,0.05); color: var(--text-secondary);">Cancel</button>
-                    <button type="submit" id="submitPushBtn" class="btn btn-primary">
-                        <span class="btn-text">Confirm &amp; Push Test Cases</span>
-                        <span class="spinner hidden"></span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Row Detail Inspector Modal -->
     <div id="rowDetailModal" class="modal-overlay hidden">

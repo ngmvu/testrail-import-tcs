@@ -39,14 +39,6 @@ DOWNLOAD_CACHE = {}
 def index():
     return render_template('index.html')
 
-@app.route('/api/config', methods=['GET'])
-def get_config():
-    return jsonify({
-        "testrail_url": os.getenv("TESTRAIL_URL", ""),
-        "email": os.getenv("TESTRAIL_EMAIL", ""),
-        "api_key": os.getenv("TESTRAIL_API_KEY", ""),
-        "project_id": os.getenv("TESTRAIL_PROJECT_ID", "")
-    })
 
 @app.route('/clean', methods=['POST'])
 def clean_csv():
@@ -210,91 +202,6 @@ def update_cell():
     })
 
 
-@app.route('/get-testrail-sections', methods=['POST'])
-def get_testrail_sections():
-    from services.testrail_service import get_sections_dropdown_list
-
-    data = request.get_json(silent=True) or request.form
-    testrail_url = data.get('testrail_url', '').strip()
-    email = data.get('email', '').strip()
-    api_key = data.get('api_key', '').strip()
-    project_id_raw = data.get('project_id', '').strip()
-    suite_id_raw = data.get('suite_id', '').strip()
-
-    if not testrail_url or not email or not api_key or not project_id_raw:
-        return jsonify({"error": "Please fill in TestRail URL, Email, API Key, and Project ID to load sections."}), 400
-
-    try:
-        project_id = int(project_id_raw)
-    except ValueError:
-        return jsonify({"error": "Project ID must be a number."}), 400
-
-    suite_id = int(suite_id_raw) if suite_id_raw.isdigit() else None
-
-    try:
-        sections = get_sections_dropdown_list(
-            testrail_url=testrail_url,
-            email=email,
-            api_key=api_key,
-            project_id=project_id,
-            suite_id=suite_id
-        )
-        return jsonify({"success": True, "sections": sections})
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch sections: {str(e)}"}), 500
-
-@app.route('/push-to-testrail', methods=['POST'])
-def push_to_testrail():
-    from services.testrail_service import push_cleaned_csv_to_testrail
-
-    data = request.get_json(silent=True) or request.form
-    file_id = data.get('file_id')
-    testrail_url = data.get('testrail_url', '').strip()
-    email = data.get('email', '').strip()
-    api_key = data.get('api_key', '').strip()
-    project_id_raw = data.get('project_id', '').strip()
-    suite_id_raw = data.get('suite_id', '').strip()
-    target_section = data.get('target_section', '').strip()
-    custom_fields = data.get('custom_fields')
-
-    if not file_id or file_id not in DOWNLOAD_CACHE:
-        return jsonify({"error": "Invalid or expired file session. Please clean CSV first."}), 400
-
-    if not testrail_url or not email or not api_key or not project_id_raw:
-        return jsonify({"error": "Please provide TestRail URL, Email, API Key, and Project ID."}), 400
-
-    try:
-        project_id = int(project_id_raw)
-    except ValueError:
-        return jsonify({"error": "Project ID must be a valid number."}), 400
-
-    suite_id = int(suite_id_raw) if suite_id_raw.isdigit() else None
-
-    output_path = DOWNLOAD_CACHE[file_id]['output_path']
-    if not os.path.exists(output_path):
-        return jsonify({"error": "Cleaned CSV file no longer exists."}), 404
-
-    try:
-        with open(output_path, 'r', encoding='utf-8') as f:
-            csv_text = f.read()
-        
-        result = push_cleaned_csv_to_testrail(
-            csv_text=csv_text,
-            testrail_url=testrail_url,
-            email=email,
-            api_key=api_key,
-            project_id=project_id,
-            suite_id=suite_id,
-            target_section=target_section,
-            custom_fields=custom_fields
-        )
-        return jsonify(result)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": f"Failed to push to TestRail: {str(e)}"}), 500
 
 @app.errorhandler(404)
 def not_found(e):

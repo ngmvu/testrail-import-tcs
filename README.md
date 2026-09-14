@@ -6,13 +6,26 @@ A specialized Python Flask web application designed to clean and normalize CSV t
 
 ## Installation & Setup Instructions
 
-### 1. Create Virtual Environment
+### 1. Install Python venv (Ubuntu/Debian)
+
+> Skip this step if `python3 -m venv` already works on your system.
 
 ```bash
-python -m venv venv
+sudo apt install -y python3.12-venv
 ```
 
-### 2. Activate Virtual Environment
+### 2. Create Virtual Environment
+
+```bash
+python3 -m venv venv
+```
+
+### 3. Activate Virtual Environment
+
+**Linux / macOS:**
+```bash
+source venv/bin/activate
+```
 
 **Windows (PowerShell):**
 ```powershell
@@ -24,12 +37,7 @@ venv\Scripts\Activate.ps1
 venv\Scripts\activate.bat
 ```
 
-**Linux / macOS:**
-```bash
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -72,8 +80,7 @@ testrail-testcase-formatter/
 │       └── app.js              # Interactivity, drag-and-drop & AJAX upload
 │
 ├── services/
-│   ├── csv_cleaner.py          # Core testcase cleaner algorithm & CSV processor
-│   └── testrail_service.py     # TestRail API integration service
+│   └── csv_cleaner.py          # Core testcase cleaner algorithm & CSV processor
 │
 ├── uploads/                    # Temporary uploaded files
 └── outputs/                    # Temporary cleaned CSV outputs
