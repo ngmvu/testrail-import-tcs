@@ -720,10 +720,64 @@ body.app-body {
     word-break: break-word !important;
 }
 
+/* STICKY TABLE HEADERS */
+.table-container thead th,
+.excel-table thead th,
+.preview-table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 25 !important;
+    background-color: #0f172a !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+}
+
 /* FIT SCREEN HEIGHT MODE */
 .table-container.fit-screen-mode {
     max-height: calc(100vh - 220px) !important;
     min-height: 480px !important;
+}
+
+/* FULLSCREEN OVERLAY MODE FOR RESULTS GRID WORKBENCH */
+.results-card.fullscreen-active {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0.75rem 1.25rem !important;
+    background: #090d16 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Hide bulky header elements in fullscreen to pull grid up */
+.results-card.fullscreen-active .card-header,
+.results-card.fullscreen-active .stats-grid,
+.results-card.fullscreen-active #csvWarningsCard {
+    display: none !important;
+}
+
+.results-card.fullscreen-active .preview-toolbar {
+    margin-top: 0 !important;
+    margin-bottom: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.results-card.fullscreen-active .table-container {
+    flex: 1 !important;
+    max-height: calc(100vh - 100px) !important;
+    min-height: 0 !important;
 }
 
 /* Column Title - Always full height, no truncation */
@@ -1262,7 +1316,7 @@ body.app-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1000000 !important;
     padding: 1.5rem;
 }
 

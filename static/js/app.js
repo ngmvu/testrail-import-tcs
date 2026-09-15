@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const changesView = document.getElementById('changesView');
     const unchangedView = document.getElementById('unchangedView');
+    const warningsView = document.getElementById('warningsView');
     const gridView = document.getElementById('gridView');
     const changesTableBody = document.getElementById('changesTableBody');
     const unchangedTableBody = document.getElementById('unchangedTableBody');
@@ -137,33 +138,80 @@ document.addEventListener('DOMContentLoaded', () => {
     let appliedRules = [];
     let editingRuleIndex = null;
 
+    function syncFindReplaceInputs(fromGrid) {
+        const find1 = document.getElementById('customFindInput');
+        const find2 = document.getElementById('gridFindInput');
+        const repl1 = document.getElementById('customReplaceInput');
+        const repl2 = document.getElementById('gridReplaceInput');
+        const mc1 = document.getElementById('matchCaseCheck');
+        const mc2 = document.getElementById('gridMatchCaseCheck');
+        const rx1 = document.getElementById('useRegexCheck');
+        const rx2 = document.getElementById('gridUseRegexCheck');
+
+        if (fromGrid) {
+            if (find1 && find2) find1.value = find2.value;
+            if (repl1 && repl2) repl1.value = repl2.value;
+            if (mc1 && mc2) mc1.checked = mc2.checked;
+            if (rx1 && rx2) rx1.checked = rx2.checked;
+        } else {
+            if (find1 && find2) find2.value = find1.value;
+            if (repl1 && repl2) repl2.value = repl1.value;
+            if (mc1 && mc2) mc2.checked = mc1.checked;
+            if (rx1 && rx2) rx2.checked = rx1.checked;
+        }
+    }
+
+    ['customFindInput', 'customReplaceInput', 'matchCaseCheck', 'useRegexCheck'].forEach(id => {
+        const elem = document.getElementById(id);
+        if (elem) {
+            elem.addEventListener('input', () => syncFindReplaceInputs(false));
+            elem.addEventListener('change', () => syncFindReplaceInputs(false));
+        }
+    });
+
+    ['gridFindInput', 'gridReplaceInput', 'gridMatchCaseCheck', 'gridUseRegexCheck'].forEach(id => {
+        const elem = document.getElementById(id);
+        if (elem) {
+            elem.addEventListener('input', () => syncFindReplaceInputs(true));
+            elem.addEventListener('change', () => syncFindReplaceInputs(true));
+        }
+    });
+
     function renderAppliedRules() {
         const section = document.getElementById('appliedRulesSection');
         const container = document.getElementById('appliedRulesContainer');
         const countSpan = document.getElementById('appliedRulesCount');
-        if (!section || !container) return;
+
+        const gridSection = document.getElementById('gridAppliedRulesSection');
+        const gridContainer = document.getElementById('gridAppliedRulesContainer');
+        const gridCountSpan = document.getElementById('gridAppliedRulesCount');
 
         if (appliedRules.length === 0) {
-            section.classList.add('hidden');
-            container.innerHTML = '';
+            if (section) section.classList.add('hidden');
+            if (gridSection) gridSection.classList.add('hidden');
+            if (container) container.innerHTML = '';
+            if (gridContainer) gridContainer.innerHTML = '';
             if (countSpan) countSpan.textContent = '0';
+            if (gridCountSpan) gridCountSpan.textContent = '0';
             editingRuleIndex = null;
             updateApplyButtonLabel();
             return;
         }
 
-        section.classList.remove('hidden');
+        if (section) section.classList.remove('hidden');
+        if (gridSection) gridSection.classList.remove('hidden');
         if (countSpan) countSpan.textContent = appliedRules.length;
-        container.innerHTML = '';
+        if (gridCountSpan) gridCountSpan.textContent = appliedRules.length;
+
+        if (container) container.innerHTML = '';
+        if (gridContainer) gridContainer.innerHTML = '';
 
         appliedRules.forEach((rule, idx) => {
-            const chip = document.createElement('div');
             const isEditingThis = (editingRuleIndex === idx);
             const borderStyle = isEditingThis 
                 ? 'background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fef08a;' 
                 : 'background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #c7d2fe;';
-
-            chip.style.cssText = `${borderStyle} padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);`;
+            const cssText = `${borderStyle} padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono);`;
             
             const findText = escapeHtml(rule.find);
             const replText = escapeHtml(rule.replace !== '' ? rule.replace : '∅ (delete)');
@@ -172,30 +220,38 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rule.is_regex) opts.push('regex');
             const optStr = opts.length > 0 ? ` [${opts.join(', ')}]` : '';
 
-            chip.innerHTML = `
+            const innerHTML = `
                 <span>#${idx + 1} <strong>"${findText}"</strong> ➔ <strong>"${replText}"</strong>${optStr}</span>
                 <button type="button" class="edit-rule-btn" data-idx="${idx}" title="Edit rule" style="background: none; border: none; color: #a5b4fc; font-weight: bold; cursor: pointer; font-size: 0.8rem; line-height: 1; padding: 0 0.2rem; margin-left: 0.3rem;">✏️ Edit</button>
                 <button type="button" class="remove-rule-btn" data-idx="${idx}" title="Remove rule" style="background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem;">&times;</button>
             `;
 
-            const editBtn = chip.querySelector('.edit-rule-btn');
-            editBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                loadRuleForEditing(idx);
-            });
+            const createChip = () => {
+                const chip = document.createElement('div');
+                chip.style.cssText = cssText;
+                chip.innerHTML = innerHTML;
 
-            const removeBtn = chip.querySelector('.remove-rule-btn');
-            removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (editingRuleIndex === idx) editingRuleIndex = null;
-                appliedRules.splice(idx, 1);
-                renderAppliedRules();
-                if (currentFile) {
-                    uploadForm.requestSubmit();
-                }
-            });
+                const editBtn = chip.querySelector('.edit-rule-btn');
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    loadRuleForEditing(idx);
+                });
 
-            container.appendChild(chip);
+                const removeBtn = chip.querySelector('.remove-rule-btn');
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (editingRuleIndex === idx) editingRuleIndex = null;
+                    appliedRules.splice(idx, 1);
+                    renderAppliedRules();
+                    if (currentFile) {
+                        uploadForm.requestSubmit();
+                    }
+                });
+                return chip;
+            };
+
+            if (container) container.appendChild(createChip());
+            if (gridContainer) gridContainer.appendChild(createChip());
         });
 
         updateApplyButtonLabel();
@@ -216,92 +272,152 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mcCheck) mcCheck.checked = !!rule.match_case;
         if (regexCheck) regexCheck.checked = !!rule.is_regex;
 
+        syncFindReplaceInputs(false);
         renderAppliedRules();
-        if (findIn) findIn.focus();
+
+        const gridDrawer = document.getElementById('gridFindReplaceDrawer');
+        if (gridDrawer && !gridDrawer.classList.contains('hidden')) {
+            const gridFindIn = document.getElementById('gridFindInput');
+            if (gridFindIn) gridFindIn.focus();
+        } else if (findIn) {
+            findIn.focus();
+        }
     }
 
     function updateApplyButtonLabel() {
         const applyBtn = document.getElementById('applyFindReplaceBtn');
-        if (!applyBtn) return;
+        const gridApplyBtn = document.getElementById('gridApplyFindReplaceBtn');
         if (editingRuleIndex !== null) {
-            applyBtn.textContent = `✏️ Update Rule #${editingRuleIndex + 1}`;
-            applyBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            const text = `✏️ Update Rule #${editingRuleIndex + 1}`;
+            const bg = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            if (applyBtn) { applyBtn.textContent = text; applyBtn.style.background = bg; }
+            if (gridApplyBtn) { gridApplyBtn.textContent = text; gridApplyBtn.style.background = bg; }
         } else {
-            applyBtn.textContent = 'Apply Replace';
-            applyBtn.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+            const text = 'Apply Replace';
+            const bg = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+            if (applyBtn) { applyBtn.textContent = text; applyBtn.style.background = bg; }
+            if (gridApplyBtn) { gridApplyBtn.textContent = text; gridApplyBtn.style.background = bg; }
         }
     }
 
-    const clearAllRulesBtn = document.getElementById('clearAllRulesBtn');
-    if (clearAllRulesBtn) {
-        clearAllRulesBtn.addEventListener('click', () => {
-            appliedRules = [];
-            editingRuleIndex = null;
-            renderAppliedRules();
-            if (currentFile) {
-                uploadForm.requestSubmit();
+    ['clearAllRulesBtn', 'gridClearAllRulesBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                appliedRules = [];
+                editingRuleIndex = null;
+                renderAppliedRules();
+                if (currentFile) {
+                    uploadForm.requestSubmit();
+                }
+            });
+        }
+    });
+
+    function handleApplyFindReplace(fromGrid) {
+        syncFindReplaceInputs(fromGrid);
+        const findIn = document.getElementById('customFindInput');
+        const replIn = document.getElementById('customReplaceInput');
+        const mcCheck = document.getElementById('matchCaseCheck');
+        const regexCheck = document.getElementById('useRegexCheck');
+
+        if (findIn && findIn.value.trim() !== '') {
+            const newRule = {
+                find: findIn.value,
+                replace: replIn ? replIn.value : '',
+                match_case: mcCheck ? mcCheck.checked : false,
+                is_regex: regexCheck ? regexCheck.checked : false
+            };
+
+            if (editingRuleIndex !== null && editingRuleIndex < appliedRules.length) {
+                appliedRules[editingRuleIndex] = newRule;
+                editingRuleIndex = null;
+            } else {
+                appliedRules.push(newRule);
             }
-        });
+
+            findIn.value = '';
+            if (replIn) replIn.value = '';
+            syncFindReplaceInputs(false);
+            renderAppliedRules();
+        }
+
+        if (currentFile) {
+            uploadForm.requestSubmit();
+        }
     }
 
-    // Explicit confirmation button for Find & Replace
     const applyFindReplaceBtn = document.getElementById('applyFindReplaceBtn');
     if (applyFindReplaceBtn) {
-        applyFindReplaceBtn.addEventListener('click', () => {
-            const findIn = document.getElementById('customFindInput');
-            const replIn = document.getElementById('customReplaceInput');
-            const mcCheck = document.getElementById('matchCaseCheck');
-            const regexCheck = document.getElementById('useRegexCheck');
+        applyFindReplaceBtn.addEventListener('click', () => handleApplyFindReplace(false));
+    }
 
-            if (findIn && findIn.value.trim() !== '') {
-                const newRule = {
-                    find: findIn.value,
-                    replace: replIn ? replIn.value : '',
-                    match_case: mcCheck ? mcCheck.checked : false,
-                    is_regex: regexCheck ? regexCheck.checked : false
-                };
+    const gridApplyFindReplaceBtn = document.getElementById('gridApplyFindReplaceBtn');
+    if (gridApplyFindReplaceBtn) {
+        gridApplyFindReplaceBtn.addEventListener('click', () => handleApplyFindReplace(true));
+    }
 
-                if (editingRuleIndex !== null && editingRuleIndex < appliedRules.length) {
-                    appliedRules[editingRuleIndex] = newRule;
-                    editingRuleIndex = null;
-                } else {
-                    appliedRules.push(newRule);
-                }
-
-                findIn.value = '';
-                if (replIn) replIn.value = '';
-                renderAppliedRules();
-            }
-
-            if (currentFile) {
-                uploadForm.requestSubmit();
-            }
-        });
+    function handleClearFindReplace() {
+        editingRuleIndex = null;
+        const findIn = document.getElementById('customFindInput');
+        const replIn = document.getElementById('customReplaceInput');
+        const mcCheck = document.getElementById('matchCaseCheck');
+        const regexCheck = document.getElementById('useRegexCheck');
+        if (findIn) findIn.value = '';
+        if (replIn) replIn.value = '';
+        if (mcCheck) mcCheck.checked = false;
+        if (regexCheck) regexCheck.checked = false;
+        syncFindReplaceInputs(false);
+        updateApplyButtonLabel();
     }
 
     const clearFindReplaceBtn = document.getElementById('clearFindReplaceBtn');
     if (clearFindReplaceBtn) {
-        clearFindReplaceBtn.addEventListener('click', () => {
-            editingRuleIndex = null;
-            const findIn = document.getElementById('customFindInput');
-            const replIn = document.getElementById('customReplaceInput');
-            const mcCheck = document.getElementById('matchCaseCheck');
-            const regexCheck = document.getElementById('useRegexCheck');
-            if (findIn) findIn.value = '';
-            if (replIn) replIn.value = '';
-            if (mcCheck) mcCheck.checked = false;
-            if (regexCheck) regexCheck.checked = false;
-            updateApplyButtonLabel();
+        clearFindReplaceBtn.addEventListener('click', handleClearFindReplace);
+    }
+
+    const gridClearFindReplaceBtn = document.getElementById('gridClearFindReplaceBtn');
+    if (gridClearFindReplaceBtn) {
+        gridClearFindReplaceBtn.addEventListener('click', handleClearFindReplace);
+    }
+
+    // Toggle & Close Grid Find & Replace Drawer
+    const toggleFindReplaceBarBtn = document.getElementById('toggleFindReplaceBarBtn');
+    const closeFindReplaceDrawerBtn = document.getElementById('closeFindReplaceDrawerBtn');
+    const gridFindReplaceDrawer = document.getElementById('gridFindReplaceDrawer');
+
+    if (toggleFindReplaceBarBtn && gridFindReplaceDrawer) {
+        toggleFindReplaceBarBtn.addEventListener('click', () => {
+            const isHidden = gridFindReplaceDrawer.classList.toggle('hidden');
+            if (!isHidden) {
+                const gridFindInput = document.getElementById('gridFindInput');
+                if (gridFindInput) gridFindInput.focus();
+                toggleFindReplaceBarBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+                toggleFindReplaceBarBtn.style.color = 'white';
+            } else {
+                toggleFindReplaceBarBtn.style.background = 'rgba(139, 92, 246, 0.15)';
+                toggleFindReplaceBarBtn.style.color = '#c4b5fd';
+            }
         });
     }
 
-    ['customFindInput', 'customReplaceInput'].forEach(id => {
+    if (closeFindReplaceDrawerBtn && gridFindReplaceDrawer) {
+        closeFindReplaceDrawerBtn.addEventListener('click', () => {
+            gridFindReplaceDrawer.classList.add('hidden');
+            if (toggleFindReplaceBarBtn) {
+                toggleFindReplaceBarBtn.style.background = 'rgba(139, 92, 246, 0.15)';
+                toggleFindReplaceBarBtn.style.color = '#c4b5fd';
+            }
+        });
+    }
+
+    ['customFindInput', 'customReplaceInput', 'gridFindInput', 'gridReplaceInput'].forEach(id => {
         const elem = document.getElementById(id);
         if (elem) {
             elem.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (applyFindReplaceBtn) applyFindReplaceBtn.click();
+                    handleApplyFindReplace(id.startsWith('grid'));
                 }
             });
         }
@@ -444,26 +560,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const csvWarningsCard = document.getElementById('csvWarningsCard');
         const warningsCountText = document.getElementById('warningsCountText');
         const warningsListContainer = document.getElementById('warningsListContainer');
-
-        if (!csvWarningsCard || !warningsListContainer) return;
+        const warningsTabBtn = document.getElementById('warningsTabBtn');
+        const warningsTabBadge = document.getElementById('warningsTabBadge');
+        const warningsTableBody = document.getElementById('warningsTableBody');
 
         if (warnings && warnings.length > 0) {
-            csvWarningsCard.classList.remove('hidden');
+            if (csvWarningsCard) csvWarningsCard.classList.remove('hidden');
             if (warningsCountText) warningsCountText.textContent = warnings.length.toLocaleString();
-            warningsListContainer.innerHTML = '';
+            if (warningsTabBtn) warningsTabBtn.classList.remove('hidden');
+            if (warningsTabBadge) warningsTabBadge.textContent = warnings.length.toLocaleString();
+
+            if (warningsListContainer) warningsListContainer.innerHTML = '';
+            if (warningsTableBody) warningsTableBody.innerHTML = '';
 
             warnings.forEach(w => {
-                const item = document.createElement('div');
-                item.style.cssText = 'background: rgba(0,0,0,0.25); border-left: 3px solid #f59e0b; padding: 0.35rem 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem;';
                 const warnMsg = w.message ? (w.message.includes(']: ') ? w.message.split(']: ')[1] : w.message) : 'Unclosed or mismatched symbol detected.';
-                item.innerHTML = `
-                    <div><strong style="color: #fbbf24;">Row #${w.row}</strong>, Column <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: ${escapeHtml(warnMsg)}</div>
-                    <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">"<em>${escapeHtml(w.snippet)}</em>"</div>
-                `;
-                warningsListContainer.appendChild(item);
+                
+                // Top Banner Item
+                if (warningsListContainer) {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'background: rgba(0,0,0,0.25); border-left: 3px solid #f59e0b; padding: 0.35rem 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem;';
+                    item.innerHTML = `
+                        <div><strong style="color: #fbbf24;">Row #${w.row}</strong>, Column <span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span>: ${escapeHtml(warnMsg)}</div>
+                        <div style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">"<em>${escapeHtml(w.snippet)}</em>"</div>
+                    `;
+                    warningsListContainer.appendChild(item);
+                }
+
+                // Dedicated Tab Table Row
+                if (warningsTableBody) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 700; color: #fbbf24; font-family: var(--font-mono);">Row #${w.row}</td>
+                        <td><span class="badge" style="background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3);">${escapeHtml(w.column)}</span></td>
+                        <td style="color: #fef08a; font-weight: 600;">${escapeHtml(warnMsg)}</td>
+                        <td><code style="background: rgba(0,0,0,0.4); padding: 0.25rem 0.5rem; border-radius: 4px; color: #f87171; font-family: var(--font-mono); font-size: 0.8125rem; white-space: pre-wrap; word-break: break-all;">${escapeHtml(w.snippet)}</code></td>
+                    `;
+                    warningsTableBody.appendChild(tr);
+                }
             });
         } else {
-            csvWarningsCard.classList.add('hidden');
+            if (csvWarningsCard) csvWarningsCard.classList.add('hidden');
+            if (warningsTabBtn) warningsTabBtn.classList.add('hidden');
         }
     }
 
@@ -862,7 +1000,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const wrapper = td.querySelector('.excel-inline-editor-wrapper');
         if (wrapper) {
             wrapper.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1057,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentVal = cellObj.cleaned !== undefined ? cellObj.cleaned : '';
 
         card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
                 <span class="badge" style="font-size: 0.8125rem; background: var(--primary-light); color: #a5b4fc;">${escapeHtml(col)}</span>
                 <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">Editing Field...</span>
             </div>
@@ -1194,10 +1331,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (changesView) changesView.classList.add('hidden');
             if (unchangedView) unchangedView.classList.add('hidden');
             if (gridView) gridView.classList.add('hidden');
+            if (warningsView) warningsView.classList.add('hidden');
 
             if (targetView === 'grid' && gridView) gridView.classList.remove('hidden');
             if (targetView === 'changes' && changesView) changesView.classList.remove('hidden');
             if (targetView === 'unchanged' && unchangedView) unchangedView.classList.remove('hidden');
+            if (targetView === 'warnings' && warningsView) warningsView.classList.remove('hidden');
         });
     });
 
@@ -1238,6 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFit = gridView.classList.toggle('fit-screen-mode');
             if (changesView) changesView.classList.toggle('fit-screen-mode', isFit);
             if (unchangedView) unchangedView.classList.toggle('fit-screen-mode', isFit);
+            if (warningsView) warningsView.classList.toggle('fit-screen-mode', isFit);
 
             if (isFit) {
                 gridFitScreenBtn.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
@@ -1250,6 +1390,46 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Grid View Fullscreen Mode Toggle
+    const gridFullscreenBtn = document.getElementById('gridFullscreenBtn');
+
+    function toggleFullscreenMode(forceState) {
+        if (!resultsSection) return;
+        const isFullscreen = typeof forceState === 'boolean' 
+            ? forceState 
+            : !resultsSection.classList.contains('fullscreen-active');
+
+        if (isFullscreen) {
+            resultsSection.classList.add('fullscreen-active');
+            document.body.style.overflow = 'hidden';
+            if (gridFullscreenBtn) {
+                gridFullscreenBtn.innerHTML = '<span>❌ Thoát Toàn Màn Hình</span>';
+                gridFullscreenBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                gridFullscreenBtn.style.color = 'white';
+                gridFullscreenBtn.style.boxShadow = '0 0 14px rgba(239, 68, 68, 0.4)';
+            }
+        } else {
+            resultsSection.classList.remove('fullscreen-active');
+            document.body.style.overflow = '';
+            if (gridFullscreenBtn) {
+                gridFullscreenBtn.innerHTML = '<span>⛶ Toàn Màn Hình</span>';
+                gridFullscreenBtn.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.2))';
+                gridFullscreenBtn.style.color = '#6ee7b7';
+                gridFullscreenBtn.style.boxShadow = 'none';
+            }
+        }
+    }
+
+    if (gridFullscreenBtn) {
+        gridFullscreenBtn.addEventListener('click', () => toggleFullscreenMode());
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && resultsSection && resultsSection.classList.contains('fullscreen-active')) {
+            toggleFullscreenMode(false);
+        }
+    });
 
     // Download Button
     downloadBtn.addEventListener('click', () => {

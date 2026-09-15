@@ -291,18 +291,126 @@
                     </div>
 
                     <!-- Preview Controls Toolbar -->
-                    <div class="preview-toolbar">
-                        <div class="tab-group">
-                            <button type="button" class="tab-btn active" data-view="grid">📊 Excel Full Grid View</button>
-                            <button type="button" class="tab-btn" data-view="changes">Edited / Changed Cells (<span id="changesCountBadge">0</span>)</button>
-                            <button type="button" class="tab-btn" data-view="unchanged">Unedited Cells (<span id="unchangedCountBadge">0</span>)</button>
+                    <div class="preview-toolbar" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; width: 100%;">
+                            <div class="tab-group">
+                                <button type="button" class="tab-btn active" data-view="grid">📊 Excel Full Grid
+                                    View</button>
+                                <button type="button" class="tab-btn" data-view="changes">Edited / Changed Cells (<span
+                                        id="changesCountBadge">0</span>)</button>
+                                <button type="button" class="tab-btn" data-view="unchanged">Unedited Cells (<span
+                                        id="unchangedCountBadge">0</span>)</button>
+                                <button type="button" class="tab-btn hidden" id="warningsTabBtn" data-view="warnings"
+                                    style="color: #fbbf24; font-weight: 600;">⚠️ Syntax Warnings (<span
+                                        id="warningsTabBadge">0</span>)</button>
+                            </div>
+                            <div class="toolbar-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <button type="button" id="toggleFindReplaceBarBtn" class="btn btn-secondary"
+                                    title="Mở thanh Tìm &amp; Thay thế toàn bộ Test Case"
+                                    style="padding: 0.4rem 0.75rem; font-size: 0.8125rem; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); font-weight: 600;">
+                                    <span>🔍 Find &amp; Replace</span>
+                                </button>
+                                <button type="button" id="gridFitScreenBtn" class="btn btn-secondary"
+                                    title="Phóng to chiều cao bảng vừa màn hình"
+                                    style="padding: 0.4rem 0.75rem; font-size: 0.8125rem; background: rgba(99, 102, 241, 0.12); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 600;">
+                                    <span>🖥️ Fit Screen</span>
+                                </button>
+                                <button type="button" id="gridFullscreenBtn" class="btn btn-secondary"
+                                    title="Bật/Tắt chế độ xem toàn màn hình (Phím tắt: ESC để thoát)"
+                                    style="padding: 0.4rem 0.75rem; font-size: 0.8125rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.2)); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); font-weight: 600; transition: all 0.2s ease;">
+                                    <span>⛶ Toàn Màn Hình</span>
+                                </button>
+                                <div class="search-box">
+                                    <input type="text" id="searchInput" placeholder="Search in Excel grid..."
+                                        class="input-search">
+                                </div>
+                            </div>
                         </div>
-                        <div class="toolbar-actions">
-                            <button type="button" id="gridFitScreenBtn" class="btn btn-secondary" title="Phóng to bảng vừa chiều cao màn hình" style="padding: 0.4rem 0.75rem; font-size: 0.8125rem; background: rgba(99, 102, 241, 0.12); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 600;">
-                                <span>🖥️ Tối Ưu Màn Hình</span>
-                            </button>
-                            <div class="search-box">
-                                <input type="text" id="searchInput" placeholder="Search in Excel grid..." class="input-search">
+
+                        <!-- Single Quick Format Bar on Top Toolbar -->
+                        <div class="markdown-quick-guide-bar"
+                            style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.78125rem; background: rgba(15, 23, 42, 0.6); padding: 0.35rem 0.85rem; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.25); flex-wrap: wrap;">
+                            <span style="color: #a5b4fc; font-weight: 700;">💡 Text Formatting Syntax:</span>
+                            <span
+                                style="color: #e2e8f0; font-family: var(--font-mono); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;"><code>**word**</code>
+                                ➔ <strong>bold</strong></span>
+                            <span style="color: var(--text-muted);">&bull;</span>
+                            <span
+                                style="color: #e2e8f0; font-family: var(--font-mono); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;"><code>- List item</code></span>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Find & Replace Panel for Live Grid & Fullscreen -->
+                    <div id="gridFindReplaceDrawer" class="hidden"
+                        style="background: rgba(15, 23, 42, 0.95); border: 1px solid var(--primary-glow); padding: 0.875rem 1rem; border-radius: var(--radius-sm); margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.65rem; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
+                            <div
+                                style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #818cf8; font-size: 0.875rem;">
+                                <span>🔍 Find &amp; Replace Any Character / Text</span>
+                                <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted);">(Across
+                                    all test cases)</span>
+                            </div>
+                            <button type="button" id="closeFindReplaceDrawerBtn"
+                                style="background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; line-height: 1;">&times;</button>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label
+                                    style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.2rem; display: block;">Find
+                                    (Text / Pattern):</label>
+                                <input type="text" id="gridFindInput" class="form-control"
+                                    placeholder="Text or pattern to find (e.g. <tag>)..."
+                                    style="font-size: 0.8125rem; padding: 0.4rem 0.65rem;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label
+                                    style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.2rem; display: block;">Replace
+                                    with:</label>
+                                <input type="text" id="gridReplaceInput" class="form-control"
+                                    placeholder="Replacement text (leave empty to delete)..."
+                                    style="font-size: 0.8125rem; padding: 0.4rem 0.65rem;">
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                <label class="checkbox-label"
+                                    style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.78125rem; cursor: pointer; color: var(--text-primary);">
+                                    <input type="checkbox" id="gridMatchCaseCheck"
+                                        style="accent-color: var(--primary);">
+                                    <span>Match Case</span>
+                                </label>
+                                <label class="checkbox-label"
+                                    style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.78125rem; cursor: pointer; color: var(--text-primary);">
+                                    <input type="checkbox" id="gridUseRegexCheck" style="accent-color: var(--primary);">
+                                    <span>Use Regex (Regular Expression)</span>
+                                </label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <button type="button" id="gridClearFindReplaceBtn" class="btn btn-secondary"
+                                    style="padding: 0.3rem 0.65rem; font-size: 0.78125rem;">Clear Inputs</button>
+                                <button type="button" id="gridApplyFindReplaceBtn" class="btn btn-primary"
+                                    style="padding: 0.3rem 0.85rem; font-size: 0.78125rem; background: linear-gradient(135deg, #6366f1, #4f46e5); font-weight: 600;">Apply
+                                    Replace</button>
+                            </div>
+                        </div>
+
+                        <!-- Active rules list in grid drawer -->
+                        <div id="gridAppliedRulesSection" class="hidden"
+                            style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.4rem; display: flex; flex-direction: column; gap: 0.3rem;">
+                            <div
+                                style="font-size: 0.725rem; font-weight: 600; color: #a5b4fc; display: flex; align-items: center; justify-content: space-between;">
+                                <span>Active Applied Replacements (<span id="gridAppliedRulesCount">0</span>):</span>
+                                <button type="button" id="gridClearAllRulesBtn"
+                                    style="background: none; border: none; color: #ef4444; font-size: 0.725rem; cursor: pointer; text-decoration: underline;">Clear
+                                    All Rules</button>
+                            </div>
+                            <div id="gridAppliedRulesContainer" style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
                             </div>
                         </div>
                     </div>
@@ -347,6 +455,23 @@
                                 </tr>
                             </thead>
                             <tbody id="unchangedTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Syntax & Pairing Warnings View -->
+                    <div id="warningsView" class="table-container hidden">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 90px;">Row #</th>
+                                    <th style="width: 170px;">Column</th>
+                                    <th>Detected Issue &amp; Details</th>
+                                    <th>Snippet Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody id="warningsTableBody">
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
@@ -588,54 +713,78 @@
                         <!-- EXCEL KEYBOARD SHORTCUT & BULLET LEVEL GUIDE -->
                         <div class="guide-card"
                             style="grid-column: 1 / -1; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); margin-top: 1rem; padding: 1.25rem; border-radius: var(--radius-sm, 6px);">
-                            
+
                             <!-- Guide Header -->
-                            <div class="guide-header" style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.875rem;">
+                            <div class="guide-header"
+                                style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.875rem;">
                                 <span class="guide-icon" style="font-size: 1.25rem;">⌨️</span>
                                 <div>
-                                    <h3 style="font-size: 1.1rem; color: #a7f3d0; margin: 0;">Excel Keyboard Shortcuts</h3>
-                                    <p style="font-size: 0.8125rem; color: var(--text-secondary, #94a3b8); margin-top: 0.2rem; margin-bottom: 0;">
+                                    <h3 style="font-size: 1.1rem; color: #a7f3d0; margin: 0;">Excel Keyboard Shortcuts
+                                    </h3>
+                                    <p
+                                        style="font-size: 0.8125rem; color: var(--text-secondary, #94a3b8); margin-top: 0.2rem; margin-bottom: 0;">
                                         Quick keyboard shortcuts for efficient Excel cell editing.
                                     </p>
                                 </div>
                             </div>
 
                             <!-- Main Content Grid -->
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem; line-height: 1.6; color: var(--text-primary, #f8fafc);">
-                                
+                            <div
+                                style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem; line-height: 1.6; color: var(--text-primary, #f8fafc);">
+
                                 <!-- Step-by-Step Shortcuts Box -->
-                                <div style="background: rgba(0,0,0,0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--border-color, #334155);">
-                                    <strong style="color: #6ee7b7; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                                <div
+                                    style="background: rgba(0,0,0,0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--border-color, #334155);">
+                                    <strong
+                                        style="color: #6ee7b7; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">
                                         🎹 Step-by-step Excel keyboard shortcuts inside a cell:
                                     </strong>
-                                    <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
-                                        <li>• <strong>Line 1 (Parent item):</strong> Type <code>- Main item 1</code> ➔ Press 
-                                            <kbd style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt + Enter</kbd> for line break inside cell.
+                                    <ul
+                                        style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                                        <li>• <strong>Line 1 (Parent item):</strong> Type <code>- Main item 1</code> ➔
+                                            Press
+                                            <kbd
+                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
+                                                + Enter</kbd> for line break inside cell.
                                         </li>
-                                        <li>• <strong>Line 2 (Child item):</strong> Press <strong>Spacebar 2 times</strong> ➔ Type <code>- Sub-item 1.1</code> ➔ Press 
-                                            <kbd style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt + Enter</kbd> for line break.
+                                        <li>• <strong>Line 2 (Child item):</strong> Press <strong>Spacebar 2
+                                                times</strong> ➔ Type <code>- Sub-item 1.1</code> ➔ Press
+                                            <kbd
+                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
+                                                + Enter</kbd> for line break.
                                         </li>
-                                        <li>• <strong>Line 3 (Child item):</strong> Press <strong>Spacebar 2 times</strong> ➔ Type <code>- Sub-item 1.2</code> ➔ Press 
-                                            <kbd style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt + Enter</kbd> for line break.
+                                        <li>• <strong>Line 3 (Child item):</strong> Press <strong>Spacebar 2
+                                                times</strong> ➔ Type <code>- Sub-item 1.2</code> ➔ Press
+                                            <kbd
+                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
+                                                + Enter</kbd> for line break.
                                         </li>
-                                        <li>• <strong>Line 4 (Parent item):</strong> Type <code>- Main item 2</code> (no leading space).</li>
+                                        <li>• <strong>Line 4 (Parent item):</strong> Type <code>- Main item 2</code> (no
+                                            leading space).</li>
                                     </ul>
                                 </div>
 
                                 <!-- Rules & Preview Columns -->
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;">
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;">
                                     <!-- Hierarchy Rules -->
-                                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm, 6px); border-left: 3px solid #6366f1;">
-                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Core Hierarchy Rules:</strong>
+                                    <div
+                                        style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm, 6px); border-left: 3px solid #6366f1;">
+                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Core
+                                            Hierarchy Rules:</strong>
                                         <div style="color: var(--text-secondary, #94a3b8);">
-                                            • <strong>Parent Level (Main item):</strong> No leading space (<code>- Item</code>).<br>
-                                            • <strong>Child Level (Indented):</strong> Add 2 leading spaces before dash (<code>&nbsp;&nbsp;- Sub-item</code>).
+                                            • <strong>Parent Level (Main item):</strong> No leading space
+                                            (<code>- Item</code>).<br>
+                                            • <strong>Child Level (Indented):</strong> Add 2 leading spaces before dash
+                                            (<code>&nbsp;&nbsp;- Sub-item</code>).
                                         </div>
                                     </div>
 
                                     <!-- Output Preview -->
-                                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm, 6px); border-left: 3px solid #38bdf8;">
-                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️ Output Rendering on TestRail:</strong>
+                                    <div
+                                        style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm, 6px); border-left: 3px solid #38bdf8;">
+                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️
+                                            Output Rendering on TestRail:</strong>
                                         <div style="font-family: monospace; color: #e2e8f0; font-size: 0.8rem;">
                                             • Main item 1<br>
                                             &nbsp;&nbsp;&nbsp;&nbsp;• Sub-item 1.1<br>
@@ -646,11 +795,11 @@
                                 </div>
 
                                 <!-- Markdown Formatting Info -->
-                                <div style="margin-top: 0.5rem; padding: 0.75rem 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm, 6px); border-left: 3px solid #f59e0b; font-size: 0.8125rem; color: var(--text-secondary, #94a3b8);">
-                                    <strong style="color: #fbbf24; display: block; margin-bottom: 0.25rem;">💡 Text Formatting in TestRail:</strong>
-                                    • <strong>Bold:</strong> Wrap text with <code>**word**</code> ➔ <strong>bold</strong><br>
-                                    • <em>Italic:</em> Wrap text with <code>*word*</code> ➔ <em>italic</em><br>
-                                    • <strong><em>Bold &amp; Italic:</em></strong> Wrap text with <code>***word***</code> ➔ <strong><em>bold &amp; italic</em></strong>
+                                <div
+                                    style="margin-top: 0.5rem; padding: 0.75rem 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm, 6px); border-left: 3px solid #f59e0b; font-size: 0.8125rem; color: var(--text-secondary, #94a3b8);">
+                                    <strong style="color: #fbbf24; display: block; margin-bottom: 0.25rem;">💡 Text
+                                        Formatting in TestRail:</strong>
+                                    • <strong>Bold:</strong> Wrap text with <code>**word**</code> ➔
                                 </div>
 
                             </div>
