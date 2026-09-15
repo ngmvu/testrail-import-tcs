@@ -20,7 +20,7 @@
         <div class="nav-container">
             <div class="nav-brand">
                 <div class="brand-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="28" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -587,63 +587,55 @@
 
                         <!-- EXCEL KEYBOARD SHORTCUT & BULLET LEVEL GUIDE -->
                         <div class="guide-card"
-                            style="grid-column: 1 / -1; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); margin-top: 1rem;">
-                            <div class="guide-header" style="margin-bottom: 0.875rem;">
-                                <span class="guide-icon">⌨️</span>
+                            style="grid-column: 1 / -1; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); margin-top: 1rem; padding: 1.25rem; border-radius: var(--radius-sm, 6px);">
+                            
+                            <!-- Guide Header -->
+                            <div class="guide-header" style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.875rem;">
+                                <span class="guide-icon" style="font-size: 1.25rem;">⌨️</span>
                                 <div>
-                                    <h3 style="font-size: 1.1rem; color: #a7f3d0;">Excel Keyboard Shortcuts &amp; Bullet
-                                        Level Guide (Parent vs Child)</h3>
-                                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                                        Rules to distinguish main parent bullets vs indented sub-bullets inside an Excel
-                                        cell.</p>
+                                    <h3 style="font-size: 1.1rem; color: #a7f3d0; margin: 0;">Excel Keyboard Shortcuts</h3>
+                                    <p style="font-size: 0.8125rem; color: var(--text-secondary, #94a3b8); margin-top: 0.2rem; margin-bottom: 0;">
+                                        Quick keyboard shortcuts for efficient Excel cell editing.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div
-                                style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem; line-height: 1.6; color: var(--text-primary);">
-                                <div
-                                    style="background: rgba(0,0,0,0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                    <strong
-                                        style="color: #6ee7b7; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">🎹
-                                        Step-by-step Excel keyboard shortcuts inside a cell:</strong>
-                                    <ul
-                                        style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
-                                        <li>• <strong>Line 1 (Parent item):</strong> Type <code>- Main item 1</code> ➔
-                                            Press
-                                            <kbd
-                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
-                                                + Enter</kbd> for line break inside cell.
+                            <!-- Main Content Grid -->
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem; line-height: 1.6; color: var(--text-primary, #f8fafc);">
+                                
+                                <!-- Step-by-Step Shortcuts Box -->
+                                <div style="background: rgba(0,0,0,0.25); padding: 0.875rem 1.15rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--border-color, #334155);">
+                                    <strong style="color: #6ee7b7; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                                        🎹 Step-by-step Excel keyboard shortcuts inside a cell:
+                                    </strong>
+                                    <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                                        <li>• <strong>Line 1 (Parent item):</strong> Type <code>- Main item 1</code> ➔ Press 
+                                            <kbd style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt + Enter</kbd> for line break inside cell.
                                         </li>
-                                        <li>• <strong>Line 2 (Child item):</strong> Press <strong>Spacebar 2
-                                                times</strong> ➔ Type <code>- Sub-item 1.1</code> ➔ Press <kbd
-                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
-                                                + Enter</kbd> for line break.</li>
-                                        <li>• <strong>Line 3 (Child item):</strong> Press <strong>Spacebar 2
-                                                times</strong> ➔ Type <code>- Sub-item 1.2</code> ➔ Press <kbd
-                                                style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt
-                                                + Enter</kbd> for line break.</li>
-                                        <li>• <strong>Line 4 (Parent item):</strong> Type <code>- Main item 2</code> (no
-                                            leading space).</li>
+                                        <li>• <strong>Line 2 (Child item):</strong> Press <strong>Spacebar 2 times</strong> ➔ Type <code>- Sub-item 1.1</code> ➔ Press 
+                                            <kbd style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt + Enter</kbd> for line break.
+                                        </li>
+                                        <li>• <strong>Line 3 (Child item):</strong> Press <strong>Spacebar 2 times</strong> ➔ Type <code>- Sub-item 1.2</code> ➔ Press 
+                                            <kbd style="background: #334155; padding: 2px 6px; border-radius: 4px; color: #fff;">Alt + Enter</kbd> for line break.
+                                        </li>
+                                        <li>• <strong>Line 4 (Parent item):</strong> Type <code>- Main item 2</code> (no leading space).</li>
                                     </ul>
                                 </div>
 
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;">
-                                    <div
-                                        style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #6366f1;">
-                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Core
-                                            Hierarchy Rules:</strong>
-                                        <div style="color: var(--text-secondary);">
-                                            • <strong>Parent Level (Main item):</strong> No leading space
-                                            (<code>- Item</code>).<br>
-                                            • <strong>Child Level (Indented):</strong> Add 2 leading spaces before dash
-                                            (<code>&nbsp;&nbsp;- Sub-item</code>).
+                                <!-- Rules & Preview Columns -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.25rem;">
+                                    <!-- Hierarchy Rules -->
+                                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm, 6px); border-left: 3px solid #6366f1;">
+                                        <strong style="color: #a5b4fc; display: block; margin-bottom: 0.25rem;">🎯 Core Hierarchy Rules:</strong>
+                                        <div style="color: var(--text-secondary, #94a3b8);">
+                                            • <strong>Parent Level (Main item):</strong> No leading space (<code>- Item</code>).<br>
+                                            • <strong>Child Level (Indented):</strong> Add 2 leading spaces before dash (<code>&nbsp;&nbsp;- Sub-item</code>).
                                         </div>
                                     </div>
-                                    <div
-                                        style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #38bdf8;">
-                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️
-                                            Output Rendering on TestRail:</strong>
+
+                                    <!-- Output Preview -->
+                                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm, 6px); border-left: 3px solid #38bdf8;">
+                                        <strong style="color: #7dd3fc; display: block; margin-bottom: 0.25rem;">🖥️ Output Rendering on TestRail:</strong>
                                         <div style="font-family: monospace; color: #e2e8f0; font-size: 0.8rem;">
                                             • Main item 1<br>
                                             &nbsp;&nbsp;&nbsp;&nbsp;• Sub-item 1.1<br>
@@ -652,6 +644,15 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Markdown Formatting Info -->
+                                <div style="margin-top: 0.5rem; padding: 0.75rem 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm, 6px); border-left: 3px solid #f59e0b; font-size: 0.8125rem; color: var(--text-secondary, #94a3b8);">
+                                    <strong style="color: #fbbf24; display: block; margin-bottom: 0.25rem;">💡 Text Formatting in TestRail:</strong>
+                                    • <strong>Bold:</strong> Wrap text with <code>**word**</code> ➔ <strong>bold</strong><br>
+                                    • <em>Italic:</em> Wrap text with <code>*word*</code> ➔ <em>italic</em><br>
+                                    • <strong><em>Bold &amp; Italic:</em></strong> Wrap text with <code>***word***</code> ➔ <strong><em>bold &amp; italic</em></strong>
+                                </div>
+
                             </div>
                         </div>
                     </div>
